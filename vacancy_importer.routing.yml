@@ -1,0 +1,7 @@
+vacancy_importer.settings_form:
+  path: '/admin/config/services/vacancy-importer-settings'
+  defaults:
+    _form: 'Drupal\vacancy_importer\Form\VacancySourceSettingsForm'
+    _title: 'Vacancy configuration'
+  requirements:
+    _permission: 'administer vacancy importer configuration'

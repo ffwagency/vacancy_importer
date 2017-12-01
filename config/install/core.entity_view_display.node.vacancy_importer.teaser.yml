@@ -1,0 +1,46 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.vacancy_importer.body
+    - field.field.node.vacancy_importer.field_vacancy_advertisement_url
+    - field.field.node.vacancy_importer.field_vacancy_alternative_app_ur
+    - field.field.node.vacancy_importer.field_vacancy_application_due
+    - field.field.node.vacancy_importer.field_vacancy_application_url
+    - field.field.node.vacancy_importer.field_vacancy_department
+    - field.field.node.vacancy_importer.field_vacancy_disable_app_button
+    - field.field.node.vacancy_importer.field_vacancy_employment_type
+    - field.field.node.vacancy_importer.field_vacancy_facts
+    - field.field.node.vacancy_importer.field_vacancy_work_area
+    - field.field.node.vacancy_importer.field_vacancy_work_time
+    - node.type.vacancy_importer
+  module:
+    - text
+    - user
+id: node.vacancy_importer.teaser
+targetEntityType: node
+bundle: vacancy_importer
+mode: teaser
+content:
+  body:
+    label: hidden
+    type: text_summary_or_trimmed
+    weight: 101
+    settings:
+      trim_length: 600
+    third_party_settings: {  }
+  links:
+    weight: 100
+hidden:
+  field_vacancy_advertisement_url: true
+  field_vacancy_alternative_app_ur: true
+  field_vacancy_application_due: true
+  field_vacancy_application_url: true
+  field_vacancy_department: true
+  field_vacancy_disable_app_button: true
+  field_vacancy_employment_type: true
+  field_vacancy_facts: true
+  field_vacancy_work_area: true
+  field_vacancy_work_time: true
+  langcode: true

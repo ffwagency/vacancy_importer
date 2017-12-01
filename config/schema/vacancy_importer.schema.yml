@@ -1,0 +1,63 @@
+# Schema for the configuration files of the Vacancy Importer module.
+
+vacancy_importer.settings:
+  type: config_object
+  label: 'Vacancy settings'
+  mapping:
+    source:
+      type: string
+      label: 'Source'
+    cron:
+      type: mapping
+      label: 'Cron'
+      mapping:
+        interval:
+          type: integer
+          label: 'Interval'
+    archive:
+      type: mapping
+      label: 'Archive'
+      mapping:
+        cron_interval:
+          type: integer
+          label: 'Cron interval'
+        minutes:
+         type: integer
+         label: 'Minutes after due time'
+
+vacancy_importer.settings.source.emply:
+  type: config_object
+  label: 'Vacancy source settings - Emply'
+  mapping:
+    media_id:
+      type: string
+      label: 'Media Id'
+    api_key:
+      type: string
+      label: 'API Key'
+    api_domain:
+      type: string
+      label: 'API Domain'
+    insert_jobid_in_facts:
+      type: boolean
+      label: 'Insert JobId in facts'
+    fact_id__work_area:
+      type: string
+      label: 'Fact ID - Work Area'
+    fact_id__work_time:
+      type: string
+      label: 'Fact ID - Work Time'
+    fact_id__employment_type:
+      type: string
+      label: 'Fact ID - Employment Type'
+    fact_id__work_place:
+      type: string
+      label: 'Fact ID - Work Place'
+
+vacancy_importer.settings.source.hrmanager:
+  type: config_object
+  label: 'Vacancy source settings - HR Manager'
+  mapping:
+    api_name:
+      type: string
+      label: 'API Name'

@@ -1,0 +1,59 @@
+<?php
+
+/**
+ * @file
+ * Contains vacancy_importer.module.
+ */
+
+/**
+ * Implements hook_entity_delete().
+ */
+function vacancy_importer_entity_delete(Drupal\Core\Entity\EntityInterface $entity) {
+  // Only act on content entities.
+  if (!($entity instanceof \Drupal\Core\Entity\FieldableEntityInterface)) {
+    return;
+  }
+
+  // Delete the node-source relation.
+  if ($entity instanceof Drupal\node\Entity\Node && $entity->getType() == 'vacancy_importer') {
+    $importer = \Drupal::service('vacancy.importer');
+    $importer->deleteNodeSourceRelation($entity->id());
+  }
+}
+
+/**
+ * Implements hook_cron().
+ */
+function vacancy_importer_cron() {
+  // Import new vacancies and clean up old vacancies
+  $cron_config = \Drupal::configFactory()->getEditable('vacancy_importer.settings')->get('cron');
+  $interval = !empty($cron_config['interval']) ? $cron_config['interval'] : 1800;
+  $next_execution = \Drupal::state()->get('vacancy_importer.next_execution', 0);
+
+  if (REQUEST_TIME >= $next_execution) {
+    // Execute import
+    \Drupal::logger('vacancy_importer')->notice('Executing vacancy import.');
+    $importer = \Drupal::service('vacancy.importer');
+    $importer->execute();
+
+    // Clean up
+    \Drupal::logger('vacancy_importer')->notice('Executing cleanup of old unpublished vacancies.');
+    $importer = \Drupal::service('vacancy.importer');
+    $importer->cleanupOldVacancies();
+
+    \Drupal::state()->set('vacancy_importer.next_execution', REQUEST_TIME + $interval);
+  }
+
+  // Archive due vacancies
+  $archive_config = \Drupal::configFactory()->getEditable('vacancy_importer.settings')->get('archive');
+  $interval = !empty($archive_config['interval']) ? $archive_config['interval'] : 900;
+  $next_execution = \Drupal::state()->get('vacancy_importer.next_archive_execution', 0);
+
+  if (REQUEST_TIME >= $next_execution) {
+    \Drupal::logger('vacancy_importer')->notice('Executing archiving of due published vacancies.');
+    $importer = \Drupal::service('vacancy.importer');
+    $importer->archiveDueVacancies();
+
+    \Drupal::state()->set('vacancy_importer.next_archive_execution', REQUEST_TIME + $interval);
+  }
+}

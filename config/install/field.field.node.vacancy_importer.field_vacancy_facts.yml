@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_vacancy_facts
+    - node.type.vacancy_importer
+  module:
+    - text
+id: node.vacancy_importer.field_vacancy_facts
+field_name: field_vacancy_facts
+entity_type: node
+bundle: vacancy_importer
+label: Facts
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: text_long

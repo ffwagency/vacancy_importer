@@ -1,0 +1,89 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.vacancy_importer.body
+    - field.field.node.vacancy_importer.field_vacancy_advertisement_url
+    - field.field.node.vacancy_importer.field_vacancy_alternative_app_ur
+    - field.field.node.vacancy_importer.field_vacancy_application_due
+    - field.field.node.vacancy_importer.field_vacancy_application_due_t
+    - field.field.node.vacancy_importer.field_vacancy_application_url
+    - field.field.node.vacancy_importer.field_vacancy_department
+    - field.field.node.vacancy_importer.field_vacancy_disable_app_button
+    - field.field.node.vacancy_importer.field_vacancy_employment_type
+    - field.field.node.vacancy_importer.field_vacancy_facts
+    - field.field.node.vacancy_importer.field_vacancy_job_title
+    - field.field.node.vacancy_importer.field_vacancy_work_area
+    - field.field.node.vacancy_importer.field_vacancy_work_place
+    - field.field.node.vacancy_importer.field_vacancy_work_time
+    - node.type.vacancy_importer
+  module:
+    - datetime
+    - link
+    - text
+    - user
+id: node.vacancy_importer.default
+targetEntityType: node
+bundle: vacancy_importer
+mode: default
+content:
+  body:
+    label: hidden
+    type: text_default
+    weight: 0
+    settings: {  }
+    third_party_settings: {  }
+  field_vacancy_advertisement_url:
+    weight: 3
+    label: above
+    settings:
+      trim_length: 80
+      url_only: false
+      url_plain: false
+      rel: ''
+      target: ''
+    third_party_settings: {  }
+    type: link
+  field_vacancy_application_due:
+    weight: 1
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    type: datetime_default
+  field_vacancy_application_url:
+    weight: 4
+    label: above
+    settings:
+      trim_length: 80
+      url_only: false
+      url_plain: false
+      rel: ''
+      target: ''
+    third_party_settings: {  }
+    type: link
+  field_vacancy_facts:
+    weight: 2
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: text_default
+  field_vacancy_work_place:
+    weight: 5
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    type: string
+hidden:
+  field_vacancy_alternative_app_ur: true
+  field_vacancy_application_due_t: true
+  field_vacancy_department: true
+  field_vacancy_disable_app_button: true
+  field_vacancy_employment_type: true
+  field_vacancy_job_title: true
+  field_vacancy_work_area: true
+  field_vacancy_work_time: true
+  langcode: true
+  links: true

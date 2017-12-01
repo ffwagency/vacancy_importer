@@ -1,0 +1,172 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.vacancy_importer.body
+    - field.field.node.vacancy_importer.field_vacancy_advertisement_url
+    - field.field.node.vacancy_importer.field_vacancy_alternative_app_ur
+    - field.field.node.vacancy_importer.field_vacancy_application_due
+    - field.field.node.vacancy_importer.field_vacancy_application_due_t
+    - field.field.node.vacancy_importer.field_vacancy_application_url
+    - field.field.node.vacancy_importer.field_vacancy_department
+    - field.field.node.vacancy_importer.field_vacancy_disable_app_button
+    - field.field.node.vacancy_importer.field_vacancy_employment_type
+    - field.field.node.vacancy_importer.field_vacancy_facts
+    - field.field.node.vacancy_importer.field_vacancy_job_title
+    - field.field.node.vacancy_importer.field_vacancy_work_area
+    - field.field.node.vacancy_importer.field_vacancy_work_place
+    - field.field.node.vacancy_importer.field_vacancy_work_time
+    - node.type.vacancy_importer
+  module:
+    - datetime
+    - link
+    - path
+    - text
+id: node.vacancy_importer.default
+targetEntityType: node
+bundle: vacancy_importer
+mode: default
+content:
+  body:
+    type: text_textarea_with_summary
+    weight: 8
+    settings:
+      rows: 9
+      summary_rows: 3
+      placeholder: ''
+    third_party_settings: {  }
+  created:
+    type: datetime_timestamp
+    weight: 4
+    settings: {  }
+    third_party_settings: {  }
+  field_vacancy_advertisement_url:
+    weight: 17
+    settings:
+      placeholder_url: ''
+      placeholder_title: ''
+    third_party_settings: {  }
+    type: link_default
+  field_vacancy_alternative_app_ur:
+    weight: 19
+    settings:
+      placeholder_url: ''
+      placeholder_title: ''
+    third_party_settings: {  }
+    type: link_default
+  field_vacancy_application_due:
+    weight: 15
+    settings: {  }
+    third_party_settings: {  }
+    type: datetime_default
+  field_vacancy_application_due_t:
+    weight: 16
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+  field_vacancy_application_url:
+    weight: 18
+    settings:
+      placeholder_url: ''
+      placeholder_title: ''
+    third_party_settings: {  }
+    type: link_default
+  field_vacancy_department:
+    weight: 13
+    settings:
+      match_operator: CONTAINS
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: entity_reference_autocomplete_tags
+  field_vacancy_disable_app_button:
+    weight: 20
+    settings:
+      display_label: true
+    third_party_settings: {  }
+    type: boolean_checkbox
+  field_vacancy_employment_type:
+    weight: 12
+    settings:
+      match_operator: CONTAINS
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: entity_reference_autocomplete_tags
+  field_vacancy_facts:
+    weight: 9
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+    type: text_textarea
+  field_vacancy_job_title:
+    weight: 1
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+  field_vacancy_work_area:
+    weight: 10
+    settings:
+      match_operator: CONTAINS
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: entity_reference_autocomplete_tags
+  field_vacancy_work_place:
+    weight: 14
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+  field_vacancy_work_time:
+    weight: 11
+    settings:
+      match_operator: CONTAINS
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: entity_reference_autocomplete_tags
+  langcode:
+    type: language_select
+    weight: 2
+    settings: {  }
+    third_party_settings: {  }
+  path:
+    type: path
+    weight: 7
+    settings: {  }
+    third_party_settings: {  }
+  promote:
+    type: boolean_checkbox
+    settings:
+      display_label: true
+    weight: 5
+    third_party_settings: {  }
+  sticky:
+    type: boolean_checkbox
+    settings:
+      display_label: true
+    weight: 6
+    third_party_settings: {  }
+  title:
+    type: string_textfield
+    weight: 0
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  uid:
+    type: entity_reference_autocomplete
+    weight: 3
+    settings:
+      match_operator: CONTAINS
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden: {  }

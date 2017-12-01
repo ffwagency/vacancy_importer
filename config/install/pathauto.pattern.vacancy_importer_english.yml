@@ -1,0 +1,32 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - language
+    - node
+id: vacancy_importer_english
+label: 'Vacancy - English'
+type: 'canonical_entities:node'
+pattern: 'vacancy/[node:field_vacancy_job_title:value]'
+selection_criteria:
+  70f8f908-a413-4021-bfe9-603f1844d98c:
+    id: node_type
+    bundles:
+      vacancy_importer: vacancy_importer
+    negate: false
+    context_mapping:
+      node: node
+    uuid: 70f8f908-a413-4021-bfe9-603f1844d98c
+  7852533b-031c-41d5-b1ac-4300817d7083:
+    id: language
+    langcodes:
+      en: en
+    negate: false
+    context_mapping:
+      language: 'node:langcode:language'
+    uuid: 7852533b-031c-41d5-b1ac-4300817d7083
+selection_logic: and
+weight: -10
+relationships:
+  'node:langcode:language':
+    label: Language

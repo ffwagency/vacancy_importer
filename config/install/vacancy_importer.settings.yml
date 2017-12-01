@@ -1,0 +1,6 @@
+source: 
+cron:
+  interval: 1800
+archive:
+  cron_interval: 900
+  minutes: 15

@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_vacancy_disable_app_button
+    - node.type.vacancy_importer
+id: node.vacancy_importer.field_vacancy_disable_app_button
+field_name: field_vacancy_disable_app_button
+entity_type: node
+bundle: vacancy_importer
+label: 'Disable apply button'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

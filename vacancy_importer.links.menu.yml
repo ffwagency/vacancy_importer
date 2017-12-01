@@ -1,0 +1,5 @@
+vacancy_importer.settings_form:
+  title: 'Vacancy importer configuration'
+  parent: system.admin_config_services
+  description: 'Configure the vacancy source and other settings related to the vacancy importer.'
+  route_name: vacancy_importer.settings_form

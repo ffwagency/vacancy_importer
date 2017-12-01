@@ -1,0 +1,15 @@
+services:
+  plugin.manager.vacancy.source:
+    class: Drupal\vacancy_importer\VacancySourceManager
+    arguments: ['@config.factory']
+    parent: default_plugin_manager
+    tags:
+      - { name: plugin_manager_cache_clear }
+  vacancy.importer:
+    class: Drupal\vacancy_importer\VacancyImporter
+    arguments: ['@plugin.manager.vacancy.source', '@entity_type.manager', '@entity.repository', '@module_handler', '@database']
+  vacancy.command.import.vacancy:
+    class: Drupal\vacancy_importer\Command\VacancyImportCommand
+    arguments: []
+    tags:
+      - { name: drupal.command }

@@ -1,0 +1,32 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - language
+    - node
+id: vacancy_importer_danish
+label: 'Vacancy - Danish'
+type: 'canonical_entities:node'
+pattern: 'job/[node:field_vacancy_job_title:value]'
+selection_criteria:
+  9560b75c-42d2-4b22-88e4-083fdc20c7d8:
+    id: node_type
+    bundles:
+      vacancy_importer: vacancy_importer
+    negate: false
+    context_mapping:
+      node: node
+    uuid: 9560b75c-42d2-4b22-88e4-083fdc20c7d8
+  6bee4f77-c4e2-4b81-a219-59ee3f846d4c:
+    id: language
+    langcodes:
+      da: da
+    negate: false
+    context_mapping:
+      language: 'node:langcode:language'
+    uuid: 6bee4f77-c4e2-4b81-a219-59ee3f846d4c
+selection_logic: and
+weight: -10
+relationships:
+  'node:langcode:language':
+    label: Language

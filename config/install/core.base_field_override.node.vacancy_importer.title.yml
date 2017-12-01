@@ -1,0 +1,17 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - node.type.vacancy_importer
+id: node.vacancy_importer.title
+field_name: title
+entity_type: node
+bundle: vacancy_importer
+label: 'Advertisement title'
+description: ''
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -1,0 +1,20 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_vacancy_application_due
+    - node.type.vacancy_importer
+  module:
+    - datetime
+id: node.vacancy_importer.field_vacancy_application_due
+field_name: field_vacancy_application_due
+entity_type: node
+bundle: vacancy_importer
+label: 'Application due'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime
