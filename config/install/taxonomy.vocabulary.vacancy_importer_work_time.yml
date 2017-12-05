@@ -1,6 +1,9 @@
 langcode: en
 status: true
-dependencies: {  }
+dependencies:
+  enforced:
+    module:
+      - vacancy_importer
 name: 'Vacancy Importer - Work time'
 vid: vacancy_importer_work_time
 description: 'Vocabulary used to organise vacancies imported from an external source in different work times.'

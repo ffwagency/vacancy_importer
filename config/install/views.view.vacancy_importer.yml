@@ -12,6 +12,9 @@ dependencies:
     - node
     - taxonomy
     - user
+  enforced:
+    module:
+      - vacancy_importer
 id: vacancy_importer
 label: Vacancy
 module: views

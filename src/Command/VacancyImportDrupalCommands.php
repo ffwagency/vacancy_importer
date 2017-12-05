@@ -9,16 +9,16 @@ namespace Drupal\vacancy_importer\Command;
 
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Command\Command;
+use Drupal\Console\Core\Command\Command;
 use Drupal\Console\Core\Command\Shared\ContainerAwareCommandTrait;
 use Drupal\Console\Core\Style\DrupalStyle;
 
 /**
- * Drupal Console Command for importing vacancies from the configured source.
+ * Drupal Console command for importing vacancies from the configured source.
  *
- * @package Drupal\vacancy_importer
+ * @package Drupal\vacancy_importer\Command
  */
-class VacancyImportCommand extends Command {
+class VacancyImportDrupalCommands extends Command {
 
   use ContainerAwareCommandTrait;
 
@@ -28,7 +28,8 @@ class VacancyImportCommand extends Command {
   protected function configure() {
     $this
       ->setName('vacancy:importer:import')
-      ->setDescription($this->trans('commands.vacancy.importer.import.description'));
+      ->setDescription($this->trans('commands.vacancy.importer.import.description'))
+      ->setAliases(['vii']);
   }
 
   /**

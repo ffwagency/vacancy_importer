@@ -4,6 +4,9 @@ dependencies:
   module:
     - datetime
     - node
+  enforced:
+    module:
+      - vacancy_importer
 id: node.field_vacancy_application_due
 field_name: field_vacancy_application_due
 entity_type: node

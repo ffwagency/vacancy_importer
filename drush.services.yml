@@ -1,0 +1,7 @@
+services:
+  vacancy.drush.commands:
+    class: Drupal\vacancy_importer\Command\VacancyImportDrushCommands
+    arguments:
+      - '@vacancy.importer'
+    tags:
+      - { name: drush.command }

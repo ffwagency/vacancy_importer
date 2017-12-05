@@ -5,6 +5,9 @@ dependencies:
     - field.storage.node.field_vacancy_department
     - node.type.vacancy_importer
     - taxonomy.vocabulary.vacancy_importer_department
+  enforced:
+    module:
+      - vacancy_importer
 id: node.vacancy_importer.field_vacancy_department
 field_name: field_vacancy_department
 entity_type: node

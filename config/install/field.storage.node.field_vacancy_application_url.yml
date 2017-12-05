@@ -4,6 +4,9 @@ dependencies:
   module:
     - link
     - node
+  enforced:
+    module:
+      - vacancy_importer
 id: node.field_vacancy_application_url
 field_name: field_vacancy_application_url
 entity_type: node

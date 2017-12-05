@@ -70,6 +70,13 @@ class VacancyImporter {
   protected $connection;
 
   /**
+   * Server request UNIX timestamp.
+   *
+   * @var int
+   */
+  protected $requestTime;
+
+  /**
    * Constructs the default content manager.
    *
    * @param \Drupal\vacancy_importer\VacancySourceManager $vacancySourceManager
@@ -91,6 +98,7 @@ class VacancyImporter {
     $this->entityRepository = $entity_repository;
     $this->moduleHandler = $module_handler;
     $this->connection = $connection;
+    $this->requestTime = \Drupal::time()->getRequestTime();
   }
 
   /**
@@ -138,12 +146,12 @@ class VacancyImporter {
         'type' => 'vacancy_importer',
         'langcode' => LANG_CODE,
       ]);
-      $node->setCreatedTime(!empty($data->createTime) ? strtotime($data->createTime) : REQUEST_TIME);
+      $node->setCreatedTime(!empty($data->createTime) ? strtotime($data->createTime) : $this->requestTime);
       $node->setOwnerId(AUTHOR_UID);
-      $node->setPublished(NODE_PUBLISHED);
+      $node->setPublished(Node::PUBLISHED);
     }
 
-    $node->setChangedTime(REQUEST_TIME);
+    $node->setChangedTime($this->requestTime);
     $node->setTitle(!empty($data->advertisementTitle) ?
       strip_tags($data->advertisementTitle) : strip_tags($data->jobTitle));
 
@@ -308,7 +316,7 @@ class VacancyImporter {
       ->fields(array('nid' => $nid))
       ->fields(array('plugin_id' => $plugin_id))
       ->fields(array('guid' => $guid))
-      ->fields(array('imported' => REQUEST_TIME))
+      ->fields(array('imported' => $this->requestTime))
       ->execute();
   }
 

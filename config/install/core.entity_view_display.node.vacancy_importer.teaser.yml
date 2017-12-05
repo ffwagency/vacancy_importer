@@ -18,6 +18,9 @@ dependencies:
   module:
     - text
     - user
+  enforced:
+    module:
+      - vacancy_importer
 id: node.vacancy_importer.teaser
 targetEntityType: node
 bundle: vacancy_importer

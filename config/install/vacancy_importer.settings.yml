@@ -1,4 +1,8 @@
-source: 
+dependencies:
+  enforced:
+    module:
+      - vacancy_importer
+source:
 cron:
   interval: 1800
 archive:

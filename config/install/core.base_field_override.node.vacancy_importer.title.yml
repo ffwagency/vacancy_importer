@@ -3,6 +3,9 @@ status: true
 dependencies:
   config:
     - node.type.vacancy_importer
+  enforced:
+    module:
+      - vacancy_importer
 id: node.vacancy_importer.title
 field_name: title
 entity_type: node

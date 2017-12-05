@@ -13,7 +13,7 @@ use Drush\Log\LogLevel;
 function vacancy_importer_drush_command() {
   $items['vacancy-importer-import'] = array(
     'description' => dt('Import vacancies from the configured source.'),
-    'aliases' => array('vi-i'),
+    'aliases' => array('vi-i', 'vii'),
   );
   return $items;
 }
@@ -25,7 +25,7 @@ function drush_vacancy_importer_import() {
   $importer = \Drupal::service('vacancy.importer');
 
   // Output info about plugin
-  drush_log(dt('Starting vacancy import.......'), LogLevel::OK);
+  drush_log(dt('Starting vacancy import.......'), LogLevel::INFO);
 
   // Execute importer
   $result = $importer->execute();

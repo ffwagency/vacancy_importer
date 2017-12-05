@@ -4,6 +4,9 @@ dependencies:
   module:
     - node
     - taxonomy
+  enforced:
+    module:
+      - vacancy_importer
 id: node.field_vacancy_work_area
 field_name: field_vacancy_work_area
 entity_type: node

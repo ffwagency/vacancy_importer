@@ -6,6 +6,9 @@ dependencies:
     - node.type.vacancy_importer
   module:
     - text
+  enforced:
+    module:
+      - vacancy_importer
 id: node.vacancy_importer.field_vacancy_facts
 field_name: field_vacancy_facts
 entity_type: node

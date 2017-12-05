@@ -8,8 +8,8 @@ services:
   vacancy.importer:
     class: Drupal\vacancy_importer\VacancyImporter
     arguments: ['@plugin.manager.vacancy.source', '@entity_type.manager', '@entity.repository', '@module_handler', '@database']
-  vacancy.command.import.vacancy:
-    class: Drupal\vacancy_importer\Command\VacancyImportCommand
+  vacancy.drupal.commands:
+    class: Drupal\vacancy_importer\Command\VacancyImportDrupalCommands
     arguments: []
     tags:
       - { name: drupal.command }

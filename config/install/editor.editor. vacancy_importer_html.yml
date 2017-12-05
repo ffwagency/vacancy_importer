@@ -5,6 +5,9 @@ dependencies:
     - filter.format.vacancy_importer_html
   module:
     - ckeditor
+  enforced:
+    module:
+      - vacancy_importer
 format: vacancy_importer_html
 editor: ckeditor
 settings:

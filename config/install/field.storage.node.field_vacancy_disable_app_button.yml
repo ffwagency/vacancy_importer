@@ -3,6 +3,9 @@ status: true
 dependencies:
   module:
     - node
+  enforced:
+    module:
+      - vacancy_importer
 id: node.field_vacancy_disable_app_button
 field_name: field_vacancy_disable_app_button
 entity_type: node

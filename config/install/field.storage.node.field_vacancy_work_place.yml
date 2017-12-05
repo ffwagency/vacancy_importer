@@ -3,6 +3,9 @@ status: true
 dependencies:
   module:
     - node
+  enforced:
+    module:
+      - vacancy_importer
 id: node.field_vacancy_work_place
 field_name: field_vacancy_work_place
 entity_type: node

@@ -1,6 +1,9 @@
 langcode: en
 status: true
-dependencies: {  }
+dependencies:
+  enforced:
+    module:
+      - vacancy_importer
 name: 'Vacancy Importer - Department'
 vid: vacancy_importer_department
 description: 'Vocabulary used to organise vacancies imported from an external source in different departments.'

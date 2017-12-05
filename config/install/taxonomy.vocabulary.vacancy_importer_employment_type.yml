@@ -1,6 +1,9 @@
 langcode: en
 status: true
-dependencies: {  }
+dependencies:
+  enforced:
+    module:
+      - vacancy_importer
 name: 'Vacancy Importer - Employment types'
 vid: vacancy_importer_employment_type
 description: 'Vocabulary used to organise vacancies imported from an external source in different employment types.'

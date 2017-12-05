@@ -3,6 +3,9 @@ status: true
 dependencies:
   config:
     - node.type.vacancy_importer
+  enforced:
+    module:
+      - vacancy_importer
 id: node.vacancy_importer.promote
 field_name: promote
 entity_type: node

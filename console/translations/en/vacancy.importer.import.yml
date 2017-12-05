@@ -1,0 +1,6 @@
+description: 'Import vacancies from the configured source.'
+options: {}
+arguments: {}
+messages:
+  start: 'Starting vacancy import....'
+  success: 'vacancies imported/updated from'

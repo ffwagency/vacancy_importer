@@ -9,4 +9,4 @@ dependencies:
   - drupal:ckeditor
   - drupal:language
   - drupal:taxonomy
-  - pathauto:pathauto
+

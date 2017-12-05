@@ -3,6 +3,9 @@ status: true
 dependencies:
   module:
     - editor
+  enforced:
+    module:
+      - vacancy_importer
 name: 'Vacancy Importer HTML'
 format: vacancy_importer_html
 weight: -5

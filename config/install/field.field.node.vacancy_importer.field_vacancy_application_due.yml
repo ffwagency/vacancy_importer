@@ -6,6 +6,9 @@ dependencies:
     - node.type.vacancy_importer
   module:
     - datetime
+  enforced:
+    module:
+      - vacancy_importer
 id: node.vacancy_importer.field_vacancy_application_due
 field_name: field_vacancy_application_due
 entity_type: node

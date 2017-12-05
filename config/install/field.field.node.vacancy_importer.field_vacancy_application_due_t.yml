@@ -4,6 +4,9 @@ dependencies:
   config:
     - field.storage.node.field_vacancy_application_due_t
     - node.type.vacancy_importer
+  enforced:
+    module:
+      - vacancy_importer
 id: node.vacancy_importer.field_vacancy_application_due_t
 field_name: field_vacancy_application_due_t
 entity_type: node

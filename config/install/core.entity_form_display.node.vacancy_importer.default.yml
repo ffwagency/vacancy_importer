@@ -22,6 +22,9 @@ dependencies:
     - link
     - path
     - text
+  enforced:
+    module:
+      - vacancy_importer
 id: node.vacancy_importer.default
 targetEntityType: node
 bundle: vacancy_importer

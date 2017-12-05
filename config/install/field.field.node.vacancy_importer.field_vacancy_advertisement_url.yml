@@ -6,6 +6,9 @@ dependencies:
     - node.type.vacancy_importer
   module:
     - link
+  enforced:
+    module:
+      - vacancy_importer
 id: node.vacancy_importer.field_vacancy_advertisement_url
 field_name: field_vacancy_advertisement_url
 entity_type: node

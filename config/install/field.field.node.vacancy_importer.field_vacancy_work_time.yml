@@ -5,6 +5,9 @@ dependencies:
     - field.storage.node.field_vacancy_work_time
     - node.type.vacancy_importer
     - taxonomy.vocabulary.vacancy_importer_work_time
+  enforced:
+    module:
+      - vacancy_importer
 id: node.vacancy_importer.field_vacancy_work_time
 field_name: field_vacancy_work_time
 entity_type: node
