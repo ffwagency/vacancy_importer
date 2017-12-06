@@ -3,16 +3,16 @@ status: true
 dependencies:
   config:
     - field.storage.node.field_vacancy_alternative_app_ur
-    - node.type.vacancy_importer
+    - node.type.vacancy
   module:
     - link
   enforced:
     module:
       - vacancy_importer
-id: node.vacancy_importer.field_vacancy_alternative_app_ur
+id: node.vacancy.field_vacancy_alternative_app_ur
 field_name: field_vacancy_alternative_app_ur
 entity_type: node
-bundle: vacancy_importer
+bundle: vacancy
 label: 'Alternative Application Url'
 description: ''
 required: false

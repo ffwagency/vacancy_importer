@@ -2,17 +2,17 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.node.field_vacancy_department
-    - node.type.vacancy_importer
-    - taxonomy.vocabulary.vacancy_importer_department
+    - field.storage.node.field_vacancy_work_area
+    - node.type.vacancy
+    - taxonomy.vocabulary.vacancy_work_area
   enforced:
     module:
       - vacancy_importer
-id: node.vacancy_importer.field_vacancy_department
-field_name: field_vacancy_department
+id: node.vacancy.field_vacancy_work_area
+field_name: field_vacancy_work_area
 entity_type: node
-bundle: vacancy_importer
-label: Department
+bundle: vacancy
+label: 'Work area'
 description: ''
 required: false
 translatable: false
@@ -22,7 +22,7 @@ settings:
   handler: 'default:taxonomy_term'
   handler_settings:
     target_bundles:
-      vacancy_importer_department: vacancy_importer_department
+      vacancy_work_area: vacancy_work_area
     sort:
       field: _none
     auto_create: false

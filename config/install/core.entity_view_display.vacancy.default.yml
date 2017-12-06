@@ -2,21 +2,21 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.node.vacancy_importer.body
-    - field.field.node.vacancy_importer.field_vacancy_advertisement_url
-    - field.field.node.vacancy_importer.field_vacancy_alternative_app_ur
-    - field.field.node.vacancy_importer.field_vacancy_application_due
-    - field.field.node.vacancy_importer.field_vacancy_application_due_t
-    - field.field.node.vacancy_importer.field_vacancy_application_url
-    - field.field.node.vacancy_importer.field_vacancy_department
-    - field.field.node.vacancy_importer.field_vacancy_disable_app_button
-    - field.field.node.vacancy_importer.field_vacancy_employment_type
-    - field.field.node.vacancy_importer.field_vacancy_facts
-    - field.field.node.vacancy_importer.field_vacancy_job_title
-    - field.field.node.vacancy_importer.field_vacancy_work_area
-    - field.field.node.vacancy_importer.field_vacancy_work_place
-    - field.field.node.vacancy_importer.field_vacancy_work_time
-    - node.type.vacancy_importer
+    - field.field.node.vacancy.body
+    - field.field.node.vacancy.field_vacancy_advertisement_url
+    - field.field.node.vacancy.field_vacancy_alternative_app_ur
+    - field.field.node.vacancy.field_vacancy_application_due
+    - field.field.node.vacancy.field_vacancy_application_due_t
+    - field.field.node.vacancy.field_vacancy_application_url
+    - field.field.node.vacancy.field_vacancy_department
+    - field.field.node.vacancy.field_vacancy_disable_app_button
+    - field.field.node.vacancy.field_vacancy_employment_type
+    - field.field.node.vacancy.field_vacancy_facts
+    - field.field.node.vacancy.field_vacancy_job_title
+    - field.field.node.vacancy.field_vacancy_work_area
+    - field.field.node.vacancy.field_vacancy_work_place
+    - field.field.node.vacancy.field_vacancy_work_time
+    - node.type.vacancy
   module:
     - datetime
     - link
@@ -25,9 +25,9 @@ dependencies:
   enforced:
     module:
       - vacancy_importer
-id: node.vacancy_importer.default
+id: node.vacancy.default
 targetEntityType: node
-bundle: vacancy_importer
+bundle: vacancy
 mode: default
 content:
   body:

@@ -11,7 +11,7 @@ third_party_settings:
     available_menus: {  }
     parent: ''
 name: Vacancy
-type: vacancy_importer
+type: vacancy
 description: 'Content type storing vacancies imported from an external source.'
 help: ''
 new_revision: false

@@ -43,6 +43,16 @@ abstract class VacancySourceBase extends PluginBase implements VacancySourceInte
   /**
    * {@inheritdoc}
    */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) { }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) { }
+
+  /**
+   * {@inheritdoc}
+   */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {  }
 
 }

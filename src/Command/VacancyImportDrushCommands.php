@@ -39,7 +39,7 @@ class VacancyImportDrushCommands extends DrushCommands {
    *
    * @command vacancy-importer:import
    *
-   * @aliases vi:import, vii, vi-i
+   * @aliases vi:import, vii
    * @validate-module-enabled vacancy_importer
    */
   public function import() {

@@ -21,5 +21,24 @@ use Drupal\Component\Plugin\PluginInspectionInterface;
  */
 interface VacancySourceInterface extends ContainerFactoryPluginInterface, PluginInspectionInterface, PluginFormInterface {
 
+  /**
+   * Check that the HR Manager API works.
+   *
+   * @param $config
+   *   Array with service url, path and query parameters.
+   *
+   * @return bool
+   *   Returns TRUE of API works and FALSE if it fails.
+   *
+   */
+  public function checkApi(array $config);
+
+  /**
+   * Plugin callback to get data from the source.
+   *
+   * @return array
+   *   Array with the source data ready for import.
+   */
+  public function getData();
 
 }

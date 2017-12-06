@@ -6,7 +6,7 @@ dependencies:
     - field.storage.node.field_vacancy_department
     - field.storage.node.field_vacancy_job_title
     - field.storage.node.field_vacancy_work_area
-    - node.type.vacancy_importer
+    - node.type.vacancy
   module:
     - datetime
     - node
@@ -383,7 +383,7 @@ display:
           table: node_field_data
           field: type
           value:
-            vacancy_importer: vacancy_importer
+            vacancy: vacancy
           entity_type: node
           entity_field: type
           plugin_id: bundle

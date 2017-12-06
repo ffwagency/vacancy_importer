@@ -11,6 +11,9 @@ vacancy_importer.settings:
       type: mapping
       label: 'Cron'
       mapping:
+        enabled:
+          type: boolean
+          label: 'Enable import cron'
         interval:
           type: integer
           label: 'Interval'
@@ -18,6 +21,9 @@ vacancy_importer.settings:
       type: mapping
       label: 'Archive'
       mapping:
+        enabled:
+          type: boolean
+          label: 'Enable automatic archiving'
         cron_interval:
           type: integer
           label: 'Cron interval'

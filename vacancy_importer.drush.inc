@@ -11,10 +11,10 @@ use Drush\Log\LogLevel;
  * Implements hook_drush_command().
  */
 function vacancy_importer_drush_command() {
-  $items['vacancy-importer-import'] = array(
+  $items['vacancy-importer-import'] = [
     'description' => dt('Import vacancies from the configured source.'),
-    'aliases' => array('vi-i', 'vii'),
-  );
+    'aliases' => ['vi:import', 'vii', 'vacancy-importer:import'],
+  ];
   return $items;
 }
 
@@ -31,5 +31,5 @@ function drush_vacancy_importer_import() {
   $result = $importer->execute();
 
   // Output status
-  drush_log(dt('@count vacancies imported/updated from "@plugin".', array('@count' => $result['count'], '@plugin' => $result['plugin_id'])), LogLevel::SUCCESS);
+  drush_log(dt('@count vacancies imported/updated from "@plugin".', ['@count' => $result['count'], '@plugin' => $result['plugin_id']]), LogLevel::SUCCESS);
 }

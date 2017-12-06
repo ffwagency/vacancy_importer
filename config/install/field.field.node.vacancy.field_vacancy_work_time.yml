@@ -2,17 +2,17 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.storage.node.field_vacancy_employment_type
-    - node.type.vacancy_importer
-    - taxonomy.vocabulary.vacancy_importer_employment_type
+    - field.storage.node.field_vacancy_work_time
+    - node.type.vacancy
+    - taxonomy.vocabulary.vacancy_work_time
   enforced:
     module:
       - vacancy_importer
-id: node.vacancy_importer.field_vacancy_employment_type
-field_name: field_vacancy_employment_type
+id: node.vacancy.field_vacancy_work_time
+field_name: field_vacancy_work_time
 entity_type: node
-bundle: vacancy_importer
-label: 'Employment type'
+bundle: vacancy
+label: 'Work time'
 description: ''
 required: false
 translatable: false
@@ -22,7 +22,7 @@ settings:
   handler: 'default:taxonomy_term'
   handler_settings:
     target_bundles:
-      vacancy_importer_employment_type: vacancy_importer_employment_type
+      vacancy_work_time: vacancy_work_time
     sort:
       field: _none
     auto_create: false

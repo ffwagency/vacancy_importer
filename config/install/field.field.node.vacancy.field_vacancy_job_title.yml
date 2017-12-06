@@ -3,14 +3,14 @@ status: true
 dependencies:
   config:
     - field.storage.node.field_vacancy_job_title
-    - node.type.vacancy_importer
+    - node.type.vacancy
   enforced:
     module:
       - vacancy_importer
-id: node.vacancy_importer.field_vacancy_job_title
+id: node.vacancy.field_vacancy_job_title
 field_name: field_vacancy_job_title
 entity_type: node
-bundle: vacancy_importer
+bundle: vacancy
 label: 'Job title'
 description: ''
 required: false

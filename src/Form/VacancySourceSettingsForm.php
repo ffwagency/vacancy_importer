@@ -98,6 +98,12 @@ class VacancySourceSettingsForm extends ConfigFormBase {
       '#open' => TRUE,
       '#tree' => TRUE,
     ];
+    $form['cron']['enabled'] = [
+      '#type' => 'checkbox',
+      '#title' => t('Enable import by cron'),
+      '#description' => t('Check to enable the import cron job.'),
+      '#default_value' => $cron['enabled'] ? $cron['enabled'] : FALSE,
+    ];
     $options = [900, 1800, 3600, 10800, 21600, 43200, 86400, 604800];
     $form['cron']['interval'] = [
       '#type' => 'select',
@@ -105,6 +111,11 @@ class VacancySourceSettingsForm extends ConfigFormBase {
       '#description' => t('How often should Drupal check for updated vacancies?'),
       '#default_value' => $cron['interval'] ? $cron['interval'] : 1800,
       '#options' => array_map([\Drupal::service('date.formatter'), 'formatInterval'], array_combine($options, $options)),
+      '#states' => [
+        'visible' => [
+          ':input[name="cron[enabled]"]' => ['checked' => TRUE],
+        ],
+      ],
     ];
 
     // Archive cron settings
@@ -115,11 +126,22 @@ class VacancySourceSettingsForm extends ConfigFormBase {
       '#open' => TRUE,
       '#tree' => TRUE,
     ];
+    $form['archive']['enabled'] = [
+      '#type' => 'checkbox',
+      '#title' => t('Enable automatic archiving'),
+      '#description' => t('Check to enable automatic archiving of vacancies with past due date.'),
+      '#default_value' => $archive['enabled'] ? $archive['enabled'] : FALSE,
+    ];
     $form['archive']['minutes'] = [
       '#type' => 'textfield',
-      '#title' => t('Expire minutes '),
+      '#title' => t('Expire minutes'),
       '#description' => t('How many minutes after due date should the vacancy be archived?'),
       '#default_value' => $archive['minutes'] ? $archive['minutes'] : 15,
+      '#states' => [
+        'visible' => [
+          ':input[name="archive[enabled]"]' => ['checked' => TRUE],
+        ],
+      ],
     ];
     $options = [900, 1800, 3600, 10800, 21600, 43200, 86400, 604800];
     $form['archive']['interval'] = [
@@ -128,6 +150,11 @@ class VacancySourceSettingsForm extends ConfigFormBase {
       '#description' => t('How often should Drupal archive vacancies with expired due date?'),
       '#default_value' => $archive['interval'] ? $archive['interval'] : 900,
       '#options' => array_map([\Drupal::service('date.formatter'), 'formatInterval'], array_combine($options, $options)),
+      '#states' => [
+        'visible' => [
+          ':input[name="archive[enabled]"]' => ['checked' => TRUE],
+        ],
+      ],
     ];
 
     return parent::buildForm($form, $form_state);
@@ -163,6 +190,10 @@ class VacancySourceSettingsForm extends ConfigFormBase {
 
     $this->config('vacancy_importer.settings')
       ->set('cron.interval', $values['cron']['interval'])
+      ->save();
+
+    $this->config('vacancy_importer.settings')
+      ->set('archive.enabled', $values['archive']['enabled'])
       ->save();
 
     $this->config('vacancy_importer.settings')

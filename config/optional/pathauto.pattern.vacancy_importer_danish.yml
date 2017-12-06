@@ -12,7 +12,7 @@ selection_criteria:
   9560b75c-42d2-4b22-88e4-083fdc20c7d8:
     id: node_type
     bundles:
-      vacancy_importer: vacancy_importer
+      vacancy: vacancy
     negate: false
     context_mapping:
       node: node

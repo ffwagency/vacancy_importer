@@ -29,7 +29,7 @@ class VacancyImportDrupalCommands extends Command {
     $this
       ->setName('vacancy:importer:import')
       ->setDescription($this->trans('commands.vacancy.importer.import.description'))
-      ->setAliases(['vii']);
+      ->setAliases(['vii', 'vi:import']);
   }
 
   /**

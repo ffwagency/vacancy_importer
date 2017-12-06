@@ -9,43 +9,57 @@
  * Implements hook_schema().
  */
 function vacancy_importer_schema() {
-  $schema['vacancy_importer_item'] = array(
+  $schema['vacancy_importer_item'] = [
     'description' => 'Tracks imported vacancy items.',
-    'fields' => array(
-      'nid' => array(
+    'fields' => [
+      'nid' => [
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'description' => 'The imported node id.',
-      ),
-      'plugin_id' => array(
+      ],
+      'plugin_id' => [
         'type' => 'varchar',
         'length' => 64,
         'not null' => TRUE,
         'default' => '',
         'description' => 'The id of the plugin that imported the vacancy item.',
-      ),
-      'guid' => array(
+      ],
+      'guid' => [
         'type' => 'varchar',
         'length' => 64,
         'not null' => TRUE,
         'default' => '',
         'description' => 'Unique identifier for the feed item.'
-      ),
-      'imported' => array(
+      ],
+      'imported' => [
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
         'description' => 'Import date of the feed item, as a Unix timestamp.',
-      ),
-    ),
-    'indexes' => array(
-      'plugin_id' => array('plugin_id'),
-      'guid' => array('guid'),
-      'plugin_id_guid' => array('plugin_id', 'guid'),
-      'imported' => array('imported'),
-    ),
-    'primary key' => array('nid'),
-  );
+      ],
+    ],
+    'indexes' => [
+      'plugin_id' => ['plugin_id'],
+      'guid' => ['guid'],
+      'plugin_id_guid' => ['plugin_id', 'guid'],
+      'imported' => ['imported'],
+    ],
+    'primary key' => ['nid'],
+  ];
+
   return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function vacancy_importer_uninstall() {
+  $nodes = \Drupal::entityTypeManager()
+    ->getStorage('node')
+    ->loadByProperties(array('type' => 'vacancy'));
+
+  foreach ($nodes as $node) {
+    $node->delete();
+  }
 }

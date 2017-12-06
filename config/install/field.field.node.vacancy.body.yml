@@ -3,16 +3,16 @@ status: true
 dependencies:
   config:
     - field.storage.node.body
-    - node.type.vacancy_importer
+    - node.type.vacancy
   module:
     - text
   enforced:
     module:
       - vacancy_importer
-id: node.vacancy_importer.body
+id: node.vacancy.body
 field_name: body
 entity_type: node
-bundle: vacancy_importer
+bundle: vacancy
 label: Body
 description: ''
 required: false

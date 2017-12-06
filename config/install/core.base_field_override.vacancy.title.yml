@@ -2,14 +2,14 @@ langcode: en
 status: true
 dependencies:
   config:
-    - node.type.vacancy_importer
+    - node.type.vacancy
   enforced:
     module:
       - vacancy_importer
-id: node.vacancy_importer.title
+id: node.vacancy.title
 field_name: title
 entity_type: node
-bundle: vacancy_importer
+bundle: vacancy
 label: 'Advertisement title'
 description: ''
 required: true

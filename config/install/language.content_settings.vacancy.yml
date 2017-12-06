@@ -2,12 +2,12 @@ langcode: en
 status: true
 dependencies:
   config:
-    - node.type.vacancy_importer
+    - node.type.vacancy
   enforced:
     module:
       - vacancy_importer
-id: node.vacancy_importer
+id: node.vacancy
 target_entity_type_id: node
-target_bundle: vacancy_importer
+target_bundle: vacancy
 default_langcode: site_default
 language_alterable: false

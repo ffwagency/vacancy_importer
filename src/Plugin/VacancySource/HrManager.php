@@ -56,13 +56,13 @@ class HrManager extends VacancySourceBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $config = $this->configFactory->getEditable('vacancy_importer.settings.source.hrmanager');
-    $form['api_name'] = array(
+    $form['api_name'] = [
       '#type' => 'textfield',
       '#title' => t('API Name'),
       '#description' => t('Write your name that is used as part of the API Url. [YOUR NAME] from
         http://api.hr-manager.net/jobportal.svc/[YOUR NAME]/positionlist/xml/?incads=1.'),
       '#default_value' => $config->get('api_name', ''),
-    );
+    ];
     return $form;
   }
 
@@ -78,11 +78,12 @@ class HrManager extends VacancySourceBase {
       if (empty($settings['api_name'])) {
         $form_state->setErrorByName('hrmanager][api_name', t('API Name is required. Please fill in the missing value!'));
       }
-
-      // Check that the API works
-      $service_config = $this->getApiConfig($settings['api_name']);
-      if (!$this->checkApi($service_config)) {
-        $form_state->setErrorByName('', t('The HR Manager API is not accessible. Please, check the configuration again.'));
+      else {
+        // Check that the API works
+        $service_config = $this->getApiConfig($settings['api_name']);
+        if (!$this->checkApi($service_config)) {
+          $form_state->setErrorByName('', t('The HR Manager API is not accessible. Please, check the configuration again.'));
+        }
       }
     }
   }
@@ -92,7 +93,7 @@ class HrManager extends VacancySourceBase {
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     $this->configFactory->getEditable('vacancy_importer.settings.source.hrmanager')
-      ->set('api_name', $form_state->getValue(array('hrmanager', 'api_name')))
+      ->set('api_name', $form_state->getValue(['hrmanager', 'api_name']))
       ->save();
   }
 
@@ -103,13 +104,14 @@ class HrManager extends VacancySourceBase {
    *   Array with the source data ready for import.
    */
   public function getData() {
-    $items = array();
+    $items = [];
 
     if ($vacancies = $this->doRequest()) {
       foreach ($vacancies as $vacancy) {
 
         $item = new \stdClass();
         $item->guid = (int) $vacancy->Id;
+        $item->languageCode = $this->getLanguageCode($vacancy);
         $item->createTime = $vacancy->LastUpdated->__toString();
         $item->advertisementTitle = trim($vacancy->Name->__toString());
         $item->jobTitle = trim($vacancy->Name->__toString());
@@ -140,7 +142,7 @@ class HrManager extends VacancySourceBase {
    *   SimpleXML object with the result and FALSE if it the request fails.
    *
    */
-  private function doRequest($config = array()) {
+  private function doRequest($config = []) {
     $config = !empty($config) ? $config : $this->getApiConfig();
 
     if (!empty($config)) {
@@ -172,14 +174,14 @@ class HrManager extends VacancySourceBase {
   /**
    * Check that the HR Manager API works.
    *
-   * @param $config
+   * @param array $config
    *   Array with service url, path and query parameters.
    *
    * @return bool
    *   Returns TRUE of API works and FALSE if it fails.
    *
    */
-  private function checkApi($config) {
+  public function checkApi(array $config) {
     $check = $this->doRequest($config);
     return is_object($check) ? TRUE : FALSE;
   }
@@ -209,4 +211,15 @@ class HrManager extends VacancySourceBase {
 
     return FALSE;
   }
+
+  /**
+   * Extract language code from the vacancy and return it in ISO 639-1 format.
+   *
+   * @param $vacancy
+   */
+  private function getLanguageCode($vacancy) {
+    $langcode = (string) $vacancy->Languages->JobPortalLanguage->Code;
+    return !empty($langcode) ? $langcode : 'und';
+  }
+
 }

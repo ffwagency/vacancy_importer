@@ -2,14 +2,14 @@ langcode: en
 status: true
 dependencies:
   config:
-    - node.type.vacancy_importer
+    - node.type.vacancy
   enforced:
     module:
       - vacancy_importer
-id: node.vacancy_importer.promote
+id: node.vacancy.promote
 field_name: promote
 entity_type: node
-bundle: vacancy_importer
+bundle: vacancy
 label: 'Promoted to front page'
 description: ''
 required: false

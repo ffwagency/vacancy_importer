@@ -16,11 +16,11 @@ use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Database\Connection;
 
-define(__NAMESPACE__ . '\VOCAB_DEPARTMENT', 'vacancy_importer_department');
-define(__NAMESPACE__ . '\VOCAB_EMPLOYMENT_TYPE', 'vacancy_importer_employment_type');
-define(__NAMESPACE__ . '\VOCAB_WORK_AREA', 'vacancy_importer_work_area');
-define(__NAMESPACE__ . '\VOCAB_WORK_TIME', 'vacancy_importer_work_time');
-define(__NAMESPACE__ . '\LANG_CODE', 'da');
+define(__NAMESPACE__ . '\VOCAB_DEPARTMENT', 'vacancy_department');
+define(__NAMESPACE__ . '\VOCAB_EMPLOYMENT_TYPE', 'vacancy_employment_type');
+define(__NAMESPACE__ . '\VOCAB_WORK_AREA', 'vacancy_work_area');
+define(__NAMESPACE__ . '\VOCAB_WORK_TIME', 'vacancy_work_time');
+define(__NAMESPACE__ . '\LANG_CODE', 'und');
 define(__NAMESPACE__ . '\AUTHOR_UID', 1);
 define(__NAMESPACE__ . '\TEXT_FORMAT_HTML', 'vacancy_importer_html');
 define(__NAMESPACE__ . '\TEXT_FORMAT_PLAIN', 'plain_text');
@@ -143,8 +143,8 @@ class VacancyImporter {
     }
     else {
       $node = Node::create([
-        'type' => 'vacancy_importer',
-        'langcode' => LANG_CODE,
+        'type' => 'vacancy',
+        'langcode' => $data->languageCode,
       ]);
       $node->setCreatedTime(!empty($data->createTime) ? strtotime($data->createTime) : $this->requestTime);
       $node->setOwnerId(AUTHOR_UID);
@@ -340,7 +340,7 @@ class VacancyImporter {
   public function cleanupOldVacancies() {
     $date = date('Y-m-d\tH:i:s', strtotime('-60 days'));
     $ids = \Drupal::entityQuery('node')
-      ->condition('type', 'vacancy_importer')
+      ->condition('type', 'vacancy')
       ->condition('status', 0)
       ->condition('field_vacancy_application_due', $date, '<')
       ->execute();
@@ -366,7 +366,7 @@ class VacancyImporter {
     $time_gmt = $date->format("Y-m-d\TH:i:s", array('timezone' => 'GMT'));
 
     $ids = \Drupal::entityQuery('node')
-      ->condition('type', 'vacancy_importer')
+      ->condition('type', 'vacancy')
       ->condition('status', 1)
       ->condition('field_vacancy_application_due', $time_gmt, '<')
       ->execute();

@@ -56,54 +56,54 @@ class Emply extends VacancySourceBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $config = $this->configFactory->getEditable('vacancy_importer.settings.source.emply');
-    $form['media_id'] = array(
+    $form['media_id'] = [
       '#type' => 'textfield',
       '#title' => t('Media Id'),
       '#description' => t('Media Id received from Emply.'),
       '#default_value' => $config->get('media_id', ''),
-    );
-    $form['api_key'] = array(
+    ];
+    $form['api_key'] = [
       '#type' => 'textfield',
       '#title' => t('API Key'),
       '#description' => t('API key received from Emply.'),
       '#default_value' => $config->get('api_key', ''),
-    );
-    $form['api_domain'] = array(
+    ];
+    $form['api_domain'] = [
       '#type' => 'textfield',
       '#title' => t('API Domain'),
       '#description' => t('The API domain / URL in the format: https://company.emply.net.'),
       '#default_value' => $config->get('api_domain', ''),
-    );
-    $form['insert_jobid_in_facts'] = array(
+    ];
+    $form['insert_jobid_in_facts'] = [
       '#type' => 'checkbox',
       '#title' => t('Insert JobId in facts'),
       '#description' => t('Insert JobId into the facts block during import.'),
       '#default_value' => $config->get('insert_jobid_in_facts', ''),
-    );
-    $form['fact_id__work_area'] = array(
+    ];
+    $form['fact_id__work_area'] = [
       '#type' => 'textfield',
       '#title' => t('Fact ID - Work Area'),
       '#description' => t('The Fact ID used to extract the Work Area category.'),
       '#default_value' => $config->get('fact_id__work_area', ''),
-    );
-    $form['fact_id__work_time'] = array(
+    ];
+    $form['fact_id__work_time'] = [
       '#type' => 'textfield',
       '#title' => t('Fact ID - Work Time'),
       '#description' => t('The Fact ID used to extract the Work Time category.'),
       '#default_value' => $config->get('fact_id__work_time', ''),
-    );
-    $form['fact_id__employment_type'] = array(
+    ];
+    $form['fact_id__employment_type'] = [
       '#type' => 'textfield',
       '#title' => t('Fact ID - Employment Type'),
       '#description' => t('The Fact ID used to extract the Employment Type category.'),
       '#default_value' => $config->get('fact_id__employment_type', ''),
-    );
-    $form['fact_id__work_place'] = array(
+    ];
+    $form['fact_id__work_place'] = [
       '#type' => 'textfield',
       '#title' => t('Fact ID - Work Place'),
       '#description' => t('The Fact ID used to extract the Work Place text'),
       '#default_value' => $config->get('fact_id__work_place', ''),
-    );
+    ];
     return $form;
   }
 
@@ -143,7 +143,7 @@ class Emply extends VacancySourceBase {
 
       // Check that the API works
       $service_config = $this->getEmplyApiConfig($settings['api_domain'], $settings['media_id'], $settings['api_key']);
-      if (!$this->checkApi($service_config)) {
+      if (!is_array($service_config) || !$this->checkApi($service_config)) {
         $form_state->setErrorByName('', t('The Emply API is not accessible. Please, check the configuration again.'));
       }
     }
@@ -154,14 +154,14 @@ class Emply extends VacancySourceBase {
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     $this->configFactory->getEditable('vacancy_importer.settings.source.emply')
-      ->set('media_id', $form_state->getValue(array('emply', 'media_id')))
-      ->set('api_key', $form_state->getValue(array('emply', 'api_key')))
-      ->set('api_domain', $form_state->getValue(array('emply', 'api_domain')))
-      ->set('insert_jobid_in_facts', $form_state->getValue(array('emply', 'insert_jobid_in_facts')))
-      ->set('fact_id__work_area', $form_state->getValue(array('emply', 'fact_id__work_area')))
-      ->set('fact_id__work_time', $form_state->getValue(array('emply', 'fact_id__work_time')))
-      ->set('fact_id__employment_type', $form_state->getValue(array('emply', 'fact_id__employment_type')))
-      ->set('fact_id__work_place', $form_state->getValue(array('emply', 'fact_id__work_place')))
+      ->set('media_id', $form_state->getValue(['emply', 'media_id']))
+      ->set('api_key', $form_state->getValue(['emply', 'api_key']))
+      ->set('api_domain', $form_state->getValue(['emply', 'api_domain']))
+      ->set('insert_jobid_in_facts', $form_state->getValue(['emply', 'insert_jobid_in_facts']))
+      ->set('fact_id__work_area', $form_state->getValue(['emply', 'fact_id__work_area']))
+      ->set('fact_id__work_time', $form_state->getValue(['emply', 'fact_id__work_time']))
+      ->set('fact_id__employment_type', $form_state->getValue(['emply', 'fact_id__employment_type']))
+      ->set('fact_id__work_place', $form_state->getValue(['emply', 'fact_id__work_place']))
       ->save();
   }
 
@@ -172,12 +172,13 @@ class Emply extends VacancySourceBase {
    *   Array with the source data ready for import.
    */
   public function getData() {
-    $items = array();
+    $items = [];
 
     if ($vacancies = $this->doRequest()) {
       foreach ($vacancies as $vacancy) {
         $item = new \stdClass();
         $item->guid = $vacancy->adid->__toString();
+        $item->languageCode = $this->getLanguageCode($vacancy);
         $item->createTime = $this->formatEmplyDate($vacancy->published->__toString());
         $item->advertisementTitle = $this->formatPlainText($vacancy->adheader->__toString());
         $item->jobTitle = $this->formatPlainText($vacancy->jobtitle->__toString());
@@ -210,7 +211,7 @@ class Emply extends VacancySourceBase {
    *   SimpleXML object with the result and FALSE if it the request fails.
    *
    */
-  private function doRequest($config = array()) {
+  private function doRequest($config = []) {
     $config = !empty($config) ? $config : $this->getEmplyApiConfig();
 
     if (!empty($config)) {
@@ -239,14 +240,14 @@ class Emply extends VacancySourceBase {
   /**
    * Check that the Emply API works.
    *
-   * @param $config
+   * @param array $config
    *   Array with service url, path and query parameters.
    *
    * @return bool
    *   Returns TRUE of API works and FALSE if it fails.
    *
    */
-  private function checkApi($config) {
+  public function checkApi(array $config) {
     $check = $this->doRequest($config);
     return is_object($check) ? TRUE : FALSE;
   }
@@ -312,7 +313,7 @@ class Emply extends VacancySourceBase {
    */
   private function formatEmplyFacts($facts, $job_id) {
     $config = $this->configFactory->getEditable('vacancy_importer.settings.source.emply');
-    $formatted = array();
+    $formatted = [];
 
     foreach ($facts->fact as $fact) {
       $visibility = ($fact['visible']->__toString() == 'True') ? TRUE : FALSE;
@@ -370,6 +371,21 @@ class Emply extends VacancySourceBase {
     }
 
     return '';
+  }
+
+  /**
+   * Extract language code from the vacancy and return it in ISO 639-1 format.
+   *
+   * @param $vacancy
+   */
+  private function getLanguageCode($vacancy) {
+    $attributes = $vacancy->ad->attributes();
+    if (isset($attributes['language'])) {
+      return substr($attributes['language'], 0, 2);
+    }
+    else {
+      return 'und';
+    }
   }
 
 }

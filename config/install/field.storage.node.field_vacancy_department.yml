@@ -7,8 +7,6 @@ dependencies:
   enforced:
     module:
       - vacancy_importer
-    config:
-      - taxonomy.vocabulary.vacancy_importer_department
 id: node.field_vacancy_department
 field_name: field_vacancy_department
 entity_type: node
