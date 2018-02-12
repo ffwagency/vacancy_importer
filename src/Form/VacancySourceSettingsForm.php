@@ -189,7 +189,11 @@ class VacancySourceSettingsForm extends ConfigFormBase {
     }
 
     $this->config('vacancy_importer.settings')
-      ->set('cron.interval', $values['cron']['interval'])
+      ->set('cron.enabled', $values['cron']['enabled'])
+      ->save();
+
+    $this->config('vacancy_importer.settings')
+      ->set('cron.interval', $values['cron']['enabled'])
       ->save();
 
     $this->config('vacancy_importer.settings')
