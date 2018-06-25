@@ -67,3 +67,6 @@ vacancy_importer.settings.source.hrmanager:
     api_name:
       type: string
       label: 'API Name'
+    query_parameters:
+      type: string
+      label: 'Query Parameters'

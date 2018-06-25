@@ -57,7 +57,7 @@ function vacancy_importer_schema() {
 function vacancy_importer_uninstall() {
   $nodes = \Drupal::entityTypeManager()
     ->getStorage('node')
-    ->loadByProperties(array('type' => 'vacancy'));
+    ->loadByProperties(['type' => 'vacancy']);
 
   foreach ($nodes as $node) {
     $node->delete();

@@ -63,6 +63,12 @@ class HrManager extends VacancySourceBase {
         http://api.hr-manager.net/jobportal.svc/[YOUR NAME]/positionlist/xml/?incads=1.'),
       '#default_value' => $config->get('api_name', ''),
     ];
+    $form['query_parameters'] = [
+      '#type' => 'textfield',
+      '#title' => t('Query Parameters'),
+      '#description' => t('Optional: add one or more query parameters to the API call. For example to filter vacancies by location. Use the format param1=value&amp;param2=value.'),
+      '#default_value' => $config->get('query_parameters', ''),
+    ];
     return $form;
   }
 
@@ -80,7 +86,7 @@ class HrManager extends VacancySourceBase {
       }
       else {
         // Check that the API works
-        $service_config = $this->getApiConfig($settings['api_name']);
+        $service_config = $this->getApiConfig($settings['api_name'], $settings['query_parameters']);
         if (!$this->checkApi($service_config)) {
           $form_state->setErrorByName('', t('The HR Manager API is not accessible. Please, check the configuration again.'));
         }
@@ -94,6 +100,7 @@ class HrManager extends VacancySourceBase {
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     $this->configFactory->getEditable('vacancy_importer.settings.source.hrmanager')
       ->set('api_name', $form_state->getValue(['hrmanager', 'api_name']))
+      ->set('query_parameters', $form_state->getValue(['hrmanager', 'query_parameters']))
       ->save();
   }
 
@@ -192,20 +199,27 @@ class HrManager extends VacancySourceBase {
    * @param string $api_name
    *   The name that is part of the API url.
    *
+   * @param string $query_parameters
+   *   A string with query parameters.
+   *
    * @return array
    *   The API url, path and query parameters.
    */
-  private function getApiConfig($api_name = '') {
-    $config = $this->configFactory->getEditable('vacancy_importer.settings.source.hrmanager');
-    $api_name = $api_name ? $api_name : $config->get('api_name');
+  private function getApiConfig($api_name = '', $query_parameters = '') {
+    // Load from config if $api_name is empty.
+    if (empty($api_name)) {
+      $config = $this->configFactory->getEditable('vacancy_importer.settings.source.hrmanager');
+      $api_name = $config->get('api_name');
+      $query_parameters = $config->get('query_parameters');
+    }
+    parse_str(trim($query_parameters), $prepared_query);
+    $prepared_query = array_merge(['incads' => 1, 'take' => 999], $prepared_query);
 
     if (!empty($api_name)) {
       return [
         'url' => 'http://api.hr-manager.net',
         'path' => "/jobportal.svc/{$api_name}/positionlist/xml/",
-        'query' => [
-          'incads' => 1,
-        ]
+        'query' => $prepared_query
       ];
     }
 

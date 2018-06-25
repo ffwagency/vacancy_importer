@@ -81,7 +81,7 @@ class VacancySourceManager extends DefaultPluginManager {
     try {
       $test = $this->getDefinition($source);
     } catch (PluginNotFoundException $e) {
-      $message = SafeMarkup::format("The configured vacancy source plugin '@source' was not found.", array('@source' => $source));
+      $message = SafeMarkup::format("The configured vacancy source plugin '@source' was not found.", ['@source' => $source]);
       throw new PluginNotFoundException($source, $message);
     }
 
@@ -98,7 +98,7 @@ class VacancySourceManager extends DefaultPluginManager {
    */
   public function getSourceData() {
     $plugin_id = $this->getActiveSource();
-    $instance = $this->createInstance($plugin_id, array());
+    $instance = $this->createInstance($plugin_id, []);
     return $instance->getData();
   }
 

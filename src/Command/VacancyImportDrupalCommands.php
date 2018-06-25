@@ -12,11 +12,17 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Drupal\Console\Core\Command\Command;
 use Drupal\Console\Core\Command\Shared\ContainerAwareCommandTrait;
 use Drupal\Console\Core\Style\DrupalStyle;
+use Drupal\Console\Annotations\DrupalCommand;
 
 /**
  * Drupal Console command for importing vacancies from the configured source.
  *
  * @package Drupal\vacancy_importer\Command
+ *
+ * @DrupalCommand (
+ *     extension="vacancy_importer",
+ *     extensionType="module"
+ * )
  */
 class VacancyImportDrupalCommands extends Command {
 
