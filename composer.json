@@ -1,0 +1,7 @@
+{
+  "name": "ffwagency/vacancy_importer",
+  "description": "Vacancy importer for Drupal 8. Import vacancies from a third party source.",
+  "type": "drupal-module",
+  "homepage": "https://github.com/ffwagency/vacancy_importer",
+  "license": "GPL-2.0+"
+}
