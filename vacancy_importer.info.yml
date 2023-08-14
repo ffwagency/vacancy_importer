@@ -2,7 +2,7 @@ name: Vacancy Importer
 type: module
 description: Import and presentation of vacancies from HR systems.
 core: 8.x
-core_version_requirement: ^8 || ^9
+core_version_requirement: ^8 || ^9 || ^10
 configure: vacancy_importer.settings_form
 dependencies:
   - drupal:link

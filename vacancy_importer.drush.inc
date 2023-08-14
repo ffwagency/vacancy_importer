@@ -5,7 +5,7 @@
  * Drush integration for the Vacancy Importer module.
  */
 
-use Drush\Log\LogLevel;
+use Psr\Log\Loglevel;
 
 /**
  * Implements hook_drush_command().
@@ -25,11 +25,11 @@ function drush_vacancy_importer_import() {
   $importer = \Drupal::service('vacancy.importer');
 
   // Output info about plugin
-  drush_log(dt('Starting vacancy import.......'), LogLevel::INFO);
+  \Drupal::logger(dt('Starting vacancy import.......'), LogLevel::INFO);
 
   // Execute importer
   $result = $importer->execute();
 
   // Output status
-  drush_log(dt('@count vacancies imported/updated from "@plugin".', ['@count' => $result['count'], '@plugin' => $result['plugin_id']]), LogLevel::SUCCESS);
+  \Drupal::logger(dt('@count vacancies imported/updated from "@plugin".', ['@count' => $result['count'], '@plugin' => $result['plugin_id']]), LogLevel::SUCCESS);
 }
