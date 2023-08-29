@@ -374,7 +374,7 @@ class VacancyImporter {
     if ($ids) {
       foreach ($ids as $id) {
         $node = Node::load($id);
-        $node->setPublished(FALSE);
+        $node->setUnpublished();
         $node->save();
       }
     }
