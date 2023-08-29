@@ -246,7 +246,7 @@ class VacancyImporter {
     $query = \Drupal::entityQuery('taxonomy_term');
     $query->condition('vid', $vocabulary);
     $query->condition('name', trim($term_name));
-    $tids = $query->execute();
+    $tids = $query->accessCheck(TRUE)->execute();
 
     // Create the term if it does not exist.
     if (empty($tids)) {
@@ -343,6 +343,7 @@ class VacancyImporter {
       ->condition('type', 'vacancy')
       ->condition('status', 0)
       ->condition('field_vacancy_application_due', $date, '<')
+      ->accessCheck(TRUE)
       ->execute();
 
     if ($ids) {
@@ -369,6 +370,7 @@ class VacancyImporter {
       ->condition('type', 'vacancy')
       ->condition('status', 1)
       ->condition('field_vacancy_application_due', $time_gmt, '<')
+      ->accessCheck(TRUE)
       ->execute();
 
     if ($ids) {
