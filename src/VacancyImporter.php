@@ -168,7 +168,7 @@ class VacancyImporter {
     }
 
     // Job title
-    if (!empty($data->jobTitle)) {
+    if ($node->hasField('field_vacancy_job_title') && !empty($data->jobTitle)) {
       $node->field_vacancy_job_title->value = strip_tags($data->jobTitle);
     }
 
