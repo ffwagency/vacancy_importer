@@ -218,7 +218,7 @@ class Emply extends VacancySourceBase {
       $client = new Client(['base_uri' => $config['url']]);
       try {
         $res = $client->get($config['path'], ['debug' => FALSE, 'query' => $config['query']]);
-        $xml = $res->getBody()->__toString();
+        $xml = preg_replace('/&#x([a-f0-9]+);/mi', '', $res->getBody()->__toString());
         $data = new SimpleXMLElement($xml);
 
         if (isset($data->vacancy)) {
