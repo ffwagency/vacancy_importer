@@ -228,7 +228,8 @@ class Emply extends VacancySourceBase {
 
       }
       catch (RequestException $e) {
-        return $this->t('Error');
+        \Drupal::logger('emply')->error($e->getMessage());
+        return FALSE;
       }
     }
 
