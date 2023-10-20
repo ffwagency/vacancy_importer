@@ -3,11 +3,5 @@
   "description": "Vacancy importer for Drupal 8. Import vacancies from a third party source.",
   "type": "drupal-module",
   "homepage": "https://github.com/ffwagency/vacancy_importer",
-  "license": "GPL-2.0+",
-  "repositories": [
-    {
-      "url": "https://github.com/ArtemT-FFW/vacancy_importer.git",
-      "type": "git"
-    }
-  ]
+  "license": "GPL-2.0+"
 }
