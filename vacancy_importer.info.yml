@@ -7,7 +7,6 @@ configure: vacancy_importer.settings_form
 dependencies:
   - drupal:link
   - drupal:datetime
-  - drupal:ckeditor
+  - drupal:ckeditor5
   - drupal:language
   - drupal:taxonomy
-
