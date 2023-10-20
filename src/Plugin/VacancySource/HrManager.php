@@ -169,7 +169,8 @@ class HrManager extends VacancySourceBase {
 
       }
       catch (RequestException $e) {
-        return $this->t('Error');
+        \Drupal::logger('hrmanager')->error($e->getMessage());
+        return FALSE;
       }
     }
 
