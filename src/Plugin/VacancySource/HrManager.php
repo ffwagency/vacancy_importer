@@ -30,8 +30,6 @@ class HrManager extends VacancySourceBase {
    *   The plugin_id for the plugin instance.
    * @param array $plugin_definition
    *   The plugin implementation definition.
-   * @param \Psr\Log\LoggerInterface $logger
-   *   A logger instance.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The config factory.
    */
@@ -171,7 +169,8 @@ class HrManager extends VacancySourceBase {
 
       }
       catch (RequestException $e) {
-        return $this->t('Error');
+        \Drupal::logger('hrmanager')->error($e->getMessage());
+        return FALSE;
       }
     }
 
