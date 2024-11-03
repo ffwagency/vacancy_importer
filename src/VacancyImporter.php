@@ -2,16 +2,15 @@
 
 namespace Drupal\vacancy_importer;
 
-use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Entity\EntityRepositoryInterface;
-use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\taxonomy\Entity\Term;
-use Drupal\node\Entity\Node;
-use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Component\Utility\Html;
-use Drupal\Core\Database\Connection;
 use Drupal\Component\Utility\Xss;
-use Drupal\vacancy_importer\VacancySourceManager;
+use Drupal\Core\Database\Connection;
+use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\Core\Entity\EntityRepositoryInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\node\Entity\Node;
+use Drupal\taxonomy\Entity\Term;
 
 define(__NAMESPACE__ . '\VOCAB_DEPARTMENT', 'vacancy_department');
 define(__NAMESPACE__ . '\VOCAB_EMPLOYMENT_TYPE', 'vacancy_employment_type');
@@ -23,9 +22,10 @@ define(__NAMESPACE__ . '\TEXT_FORMAT_HTML', 'vacancy_importer_html');
 define(__NAMESPACE__ . '\TEXT_FORMAT_PLAIN', 'plain_text');
 
 /**
- * Vacancy Importer
+ * Vacancy Importer.
  *
- * Fetching data from the active source plugin and handle the node and term creation.
+ * Fetching data from the active source plugin and handle the node
+ * and term creation.
  *
  * @package Drupal\vacancy_importer
  */
@@ -85,11 +85,16 @@ class VacancyImporter {
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   The module handler.
    * @param \Drupal\Core\Database\Connection $connection
-   *   The database connection which will be used to store / get the nid / source guid mapping.
+   *   The database connection which will be used to store / get the nid
+   *   / source guid mapping.
    */
-  public function __construct(VacancySourceManager $vacancy_source_manager, EntityTypeManagerInterface $entity_manager,
-    EntityRepositoryInterface $entity_repository, ModuleHandlerInterface $module_handler,
-    Connection $connection) {
+  public function __construct(
+    VacancySourceManager $vacancy_source_manager,
+    EntityTypeManagerInterface $entity_manager,
+    EntityRepositoryInterface $entity_repository,
+    ModuleHandlerInterface $module_handler,
+    Connection $connection
+  ) {
     $this->vacancySourceManager = $vacancy_source_manager;
     $this->entityManager = $entity_manager;
     $this->entityRepository = $entity_repository;
@@ -337,7 +342,9 @@ class VacancyImporter {
    */
   private function getNidFromGuid($plugin_id, $guid) {
     $query = 'SELECT nid FROM {vacancy_importer_item} WHERE plugin_id = :plugin_id AND guid = :guid';
-    return $this->connection->query($query, [':plugin_id' => $plugin_id, ':guid' => $guid])->fetchField();
+    return $this->connection
+      ->query($query, [':plugin_id' => $plugin_id, ':guid' => $guid])
+      ->fetchField();
   }
 
   /**
@@ -363,7 +370,8 @@ class VacancyImporter {
   }
 
   /**
-   * Delete the record holding the relation between the node and the plugin and source GUID.
+   * Delete the record holding the relation between the node and the plugin and
+   * source GUID.
    *
    * @param int $nid
    *   The node ID.

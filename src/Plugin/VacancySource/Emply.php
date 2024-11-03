@@ -6,12 +6,12 @@ use Drupal\Component\Utility\Html;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\vacancy_importer\VacancySourceBase;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Import vacancies from Emply.com
+ * Import vacancies from Emply.com.
  *
  * @VacancySource(
  *   id = "emply",
@@ -132,7 +132,10 @@ class Emply extends VacancySourceBase {
       ->set('media_id', $form_state->getValue(['emply', 'media_id']))
       ->set('api_key', $form_state->getValue(['emply', 'api_key']))
       ->set('api_domain', $form_state->getValue(['emply', 'api_domain']))
-      ->set('insert_jobid_in_facts', $form_state->getValue(['emply', 'insert_jobid_in_facts']))
+      ->set(
+        'insert_jobid_in_facts',
+        $form_state->getValue(['emply', 'insert_jobid_in_facts'])
+      )
       ->save();
   }
 
@@ -175,8 +178,8 @@ class Emply extends VacancySourceBase {
         // Map 'data' to categories and other fields.
         if (isset($vacancy['data']) && is_array($vacancy['data'])) {
           foreach ($vacancy['data'] as $datum) {
-            // Extract the localized title
-            $localized_title = isset($datum['title']['localization'][0]['value']) ? $datum['title']['localization'][0]['value'] : '';
+            // Extract the localized title.
+            $localized_title = $datum['title']['localization'][0]['value'] ?? '';
 
             switch (strtolower($localized_title)) {
               case 'organisation':
@@ -195,7 +198,8 @@ class Emply extends VacancySourceBase {
           }
         }
 
-        // Map 'applyUrl' and 'adUrl' to 'advertisementUrl' and 'applicationUrl'.
+        // Map 'applyUrl' and 'adUrl' to
+        // 'advertisementUrl' and 'applicationUrl'.
         $item->advertisementUrl = $vacancy['applyUrl']['localization'][0]['value'] ?? '';
         $item->applicationUrl = $vacancy['adUrl']['localization'][0]['value'] ?? '';
 
@@ -248,9 +252,16 @@ class Emply extends VacancySourceBase {
     // If configuration is not provided, use the default API configuration.
     $config = !empty($config) ? $config : $this->getEmplyApiConfig();
 
+    if (empty($config['url']) || empty($config['media_id']) || empty($config['api_key'])) {
+      \Drupal::logger('emply')->error('Missing configuration for API request.');
+
+      return FALSE;
+    }
+
     // Initialize Guzzle HTTP client.
     $client = new Client(['base_uri' => $config['url']]);
     try {
+
       // Make the GET request.
       $response = $client->get('/v1/norden/postings/' . $config['media_id'], [
         'query' => ['apiKey' => $config['api_key']],
@@ -266,6 +277,7 @@ class Emply extends VacancySourceBase {
       }
       else {
         \Drupal::logger('emply')->error('API response is not valid JSON: ' . $responseBody);
+
         return FALSE;
       }
     }
@@ -299,12 +311,15 @@ class Emply extends VacancySourceBase {
     // Perform a test request using the provided configuration.
     $response = $this->doRequest($config);
 
-    // Check if the response is an array or object based on Emply API response format.
+    // Check if the response is an array or object based on
+    // Emply API response format.
     if (is_array($response) || is_object($response)) {
+
       return TRUE;
     }
 
     \Drupal::logger('emply')->error('Emply API check failed. Response format was unexpected or inaccessible.');
+
     return FALSE;
   }
 
@@ -316,11 +331,11 @@ class Emply extends VacancySourceBase {
    * @param string $media_id
    *   The Emply media id used in API request.
    * @param string $api_key
-   *   he Emply API key used in API request.
+   *   The Emply API key used in API request.
    *
    * @return array|bool
-   *   The configuration array containing the API URL, media ID, API key, and headers,
-   *   or FALSE if configuration is incomplete.
+   *   The configuration array containing the API URL, media ID, API key,
+   *   and headers, or FALSE if configuration is incomplete.
    */
   private function getEmplyApiConfig($domain = '', $media_id = '', $api_key = '') {
     $config = $this->configFactory->getEditable('vacancy_importer.settings.source.emply');
