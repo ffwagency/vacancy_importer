@@ -27,6 +27,52 @@ function vacancy_importer_entity_delete(EntityInterface $entity) {
 }
 
 /**
+ * Implements hook_entity_insert().
+ */
+function vacancy_importer_entity_insert(EntityInterface $entity) {
+  if ($entity->getEntityTypeId() == 'node' && $entity->bundle() == 'vacancy') {
+    $logger = \Drupal::logger('vacancy_importer');
+    $lang = $entity->language()->getId();
+    $is_published = $entity->isPublished();
+
+    $msg = '[nid: @nid lang: @lang] New node created. Published: @published.';
+    $placeholders = [
+      '@nid' => $entity->id(),
+      '@lang' => $lang,
+      '@published' => $is_published ? 'Yes' : 'No',
+    ];
+    $logger->info($msg, $placeholders);
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function vacancy_importer_entity_update(EntityInterface $entity) {
+  if ($entity->getEntityTypeId() == 'node' && $entity->bundle() == 'vacancy') {
+    $logger = \Drupal::logger('vacancy_importer');
+    $lang = $entity->language()->getId();
+    // Check if $entity->original is available.
+    if (isset($entity->original)) {
+      $original_state = $entity->original->isPublished();
+    }
+    else {
+      $original_state = NULL;
+    }
+    $is_published = $entity->isPublished();
+
+    $msg = '[nid: @nid lang: @lang] Original @original_state. New @new_state.';
+    $placeholders = [
+      '@nid' => $entity->id(),
+      '@lang' => $lang,
+      '@original_state' => is_null($original_state) ? 'N/A' : ($original_state ? 'published' : 'NOT published'),
+      '@new_state' => $is_published ? 'published' : 'NOT published',
+    ];
+    $logger->info($msg, $placeholders);
+  }
+}
+
+/**
  * Implements hook_cron().
  */
 function vacancy_importer_cron() {
@@ -63,7 +109,6 @@ function vacancy_importer_cron() {
 
     if ($request_time >= $next_execution) {
       \Drupal::logger('vacancy_importer')->notice('Executing archiving of due published vacancies.');
-      /** @var \Drupal\vacancy_importer\VacancyImporter $importer */
       $importer->archiveDueVacancies();
 
       \Drupal::state()->set('vacancy_importer.next_archive_execution', $request_time + $interval);
