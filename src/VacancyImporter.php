@@ -15,7 +15,6 @@ use Drupal\taxonomy\Entity\Term;
 define(__NAMESPACE__ . '\VOCAB_DEPARTMENT', 'vacancy_department');
 define(__NAMESPACE__ . '\VOCAB_EMPLOYMENT_TYPE', 'vacancy_employment_type');
 define(__NAMESPACE__ . '\VOCAB_WORK_AREA', 'vacancy_work_area');
-define(__NAMESPACE__ . '\VOCAB_WORK_TIME', 'vacancy_work_time');
 define(__NAMESPACE__ . '\LANG_CODE', 'und');
 define(__NAMESPACE__ . '\AUTHOR_UID', 1);
 define(__NAMESPACE__ . '\TEXT_FORMAT_HTML', 'vacancy_importer_html');
@@ -202,12 +201,6 @@ class VacancyImporter {
     if (!empty($data->categoryWorkArea)) {
       $tid = $this->getTermId(VOCAB_WORK_AREA, $data->categoryWorkArea, $data->languageCode);
       $node->field_vacancy_work_area->target_id = $tid;
-    }
-
-    // Set the Work Time term if the source included this category.
-    if (!empty($data->categoryWorkTime)) {
-      $tid = $this->getTermId(VOCAB_WORK_TIME, $data->categoryWorkTime, $data->languageCode);
-      $node->field_vacancy_work_time->target_id = $tid;
     }
 
     // Set the Department term if the source included this category.
