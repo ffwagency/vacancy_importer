@@ -5,19 +5,70 @@
  * Contains vacancy_importer.module.
  */
 
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\node\Entity\Node;
+
 /**
  * Implements hook_entity_delete().
  */
-function vacancy_importer_entity_delete(Drupal\Core\Entity\EntityInterface $entity) {
+function vacancy_importer_entity_delete(EntityInterface $entity) {
   // Only act on content entities.
-  if (!($entity instanceof \Drupal\Core\Entity\FieldableEntityInterface)) {
+  if (!($entity instanceof FieldableEntityInterface)) {
     return;
   }
 
   // Delete the node-source relation.
-  if ($entity instanceof Drupal\node\Entity\Node && $entity->getType() == 'vacancy') {
+  if ($entity instanceof Node && $entity->getType() == 'vacancy') {
+    /** @var \Drupal\vacancy_importer\VacancyImporter $importer */
     $importer = \Drupal::service('vacancy.importer');
     $importer->deleteNodeSourceRelation($entity->id());
+  }
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function vacancy_importer_entity_insert(EntityInterface $entity) {
+  if ($entity->getEntityTypeId() == 'node' && $entity->bundle() == 'vacancy') {
+    $logger = \Drupal::logger('vacancy_importer');
+    $lang = $entity->language()->getId();
+    $is_published = $entity->isPublished();
+
+    $msg = '[nid: @nid lang: @lang] New node created. Published: @published.';
+    $placeholders = [
+      '@nid' => $entity->id(),
+      '@lang' => $lang,
+      '@published' => $is_published ? 'Yes' : 'No',
+    ];
+    $logger->info($msg, $placeholders);
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function vacancy_importer_entity_update(EntityInterface $entity) {
+  if ($entity->getEntityTypeId() == 'node' && $entity->bundle() == 'vacancy') {
+    $logger = \Drupal::logger('vacancy_importer');
+    $lang = $entity->language()->getId();
+    // Check if $entity->original is available.
+    if (isset($entity->original)) {
+      $original_state = $entity->original->isPublished();
+    }
+    else {
+      $original_state = NULL;
+    }
+    $is_published = $entity->isPublished();
+
+    $msg = '[nid: @nid lang: @lang] Original @original_state. New @new_state.';
+    $placeholders = [
+      '@nid' => $entity->id(),
+      '@lang' => $lang,
+      '@original_state' => is_null($original_state) ? 'N/A' : ($original_state ? 'published' : 'NOT published'),
+      '@new_state' => $is_published ? 'published' : 'NOT published',
+    ];
+    $logger->info($msg, $placeholders);
   }
 }
 
@@ -27,30 +78,30 @@ function vacancy_importer_entity_delete(Drupal\Core\Entity\EntityInterface $enti
 function vacancy_importer_cron() {
   $request_time = \Drupal::time()->getRequestTime();
 
-  // Import new vacancies and clean up old vacancies
-  $cron_config = \Drupal::configFactory()->getEditable('vacancy_importer.settings')->get('cron');
+  // Import new vacancies and clean up old vacancies.
+  $cron_config = \Drupal::config('vacancy_importer.settings')->get('cron');
 
   if (!empty($cron_config['enabled'])) {
     $interval = !empty($cron_config['interval']) ? $cron_config['interval'] : 1800;
     $next_execution = \Drupal::state()->get('vacancy_importer.next_execution', 0);
 
     if ($request_time >= $next_execution) {
-      // Execute import
+      // Execute import.
       \Drupal::logger('vacancy_importer')->notice('Executing vacancy import.');
+      /** @var \Drupal\vacancy_importer\VacancyImporter $importer */
       $importer = \Drupal::service('vacancy.importer');
       $importer->execute();
 
-      // Clean up
+      // Clean up old unpublished vacancies.
       \Drupal::logger('vacancy_importer')->notice('Executing cleanup of old unpublished vacancies.');
-      $importer = \Drupal::service('vacancy.importer');
       $importer->cleanupOldVacancies();
 
       \Drupal::state()->set('vacancy_importer.next_execution', $request_time + $interval);
     }
   }
 
-  // Archive due vacancies
-  $archive_config = \Drupal::configFactory()->getEditable('vacancy_importer.settings')->get('archive');
+  // Archive due vacancies.
+  $archive_config = \Drupal::config('vacancy_importer.settings')->get('archive');
 
   if (!empty($archive_config['enabled'])) {
     $interval = !empty($archive_config['interval']) ? $archive_config['interval'] : 900;
@@ -58,7 +109,6 @@ function vacancy_importer_cron() {
 
     if ($request_time >= $next_execution) {
       \Drupal::logger('vacancy_importer')->notice('Executing archiving of due published vacancies.');
-      $importer = \Drupal::service('vacancy.importer');
       $importer->archiveDueVacancies();
 
       \Drupal::state()->set('vacancy_importer.next_archive_execution', $request_time + $interval);

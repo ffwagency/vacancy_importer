@@ -2,27 +2,27 @@
 
 namespace Drupal\vacancy_importer\Plugin\VacancySource;
 
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\vacancy_importer\VacancySourceBase;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
-use SimpleXMLElement;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Import vacancies from Emply.net
+ * Import vacancies from Emply.com.
  *
  * @VacancySource(
  *   id = "emply",
  *   label = @Translation("Emply"),
- *   description = @Translation("Import of vacancies from Emply (http://www.emply.net)")
+ *   description = @Translation("Import of vacancies from Emply (https://www.emply.com)")
  * )
  */
 class Emply extends VacancySourceBase {
 
   /**
-   * Constructs a Emply object.
+   * Constructs an Emply object.
    *
    * @param array $configuration
    *   A configuration array containing information about the plugin instance.
@@ -69,14 +69,14 @@ class Emply extends VacancySourceBase {
     $form['api_domain'] = [
       '#type' => 'textfield',
       '#title' => t('API Domain'),
-      '#description' => t('The API domain / URL in the format: https://company.emply.net.'),
+      '#description' => t('The API domain / URL in the format: https://company.emply.com.'),
       '#default_value' => $config->get('api_domain', ''),
     ];
     $form['insert_jobid_in_facts'] = [
       '#type' => 'checkbox',
       '#title' => t('Insert JobId in facts'),
-      '#description' => t('Insert JobId into the facts block during import.'),
-      '#default_value' => $config->get('insert_jobid_in_facts', ''),
+      '#description' => t('Add JobId into the facts block during import.'),
+      '#default_value' => $config->get('insert_jobid_in_facts', FALSE),
     ];
     $form['fact_id__work_area'] = [
       '#type' => 'textfield',
@@ -139,7 +139,7 @@ class Emply extends VacancySourceBase {
         $form_state->setErrorByName('emply][api_domain', t('The API Domain should not include a path or leading slash!'));
       }
 
-      // Check that the API works
+      // Check that the API works.
       $service_config = $this->getEmplyApiConfig($settings['api_domain'], $settings['media_id'], $settings['api_key']);
       if (!is_array($service_config) || !$this->checkApi($service_config)) {
         $form_state->setErrorByName('', t('The Emply API is not accessible. Please, check the configuration again.'));
@@ -155,7 +155,10 @@ class Emply extends VacancySourceBase {
       ->set('media_id', $form_state->getValue(['emply', 'media_id']))
       ->set('api_key', $form_state->getValue(['emply', 'api_key']))
       ->set('api_domain', $form_state->getValue(['emply', 'api_domain']))
-      ->set('insert_jobid_in_facts', $form_state->getValue(['emply', 'insert_jobid_in_facts']))
+      ->set(
+        'insert_jobid_in_facts',
+        $form_state->getValue(['emply', 'insert_jobid_in_facts'])
+      )
       ->set('fact_id__work_area', $form_state->getValue(['emply', 'fact_id__work_area']))
       ->set('fact_id__work_time', $form_state->getValue(['emply', 'fact_id__work_time']))
       ->set('fact_id__employment_type', $form_state->getValue(['emply', 'fact_id__employment_type']))
@@ -168,30 +171,87 @@ class Emply extends VacancySourceBase {
    *
    * @return array
    *   Array with the source data ready for import.
+   *
+   * @throws \GuzzleHttp\Exception\GuzzleException
+   *   Thrown if the HTTP request to the Emply API fails.
+   * @throws \Exception
+   *   Thrown if there is an error creating the Vacancy nodes.
    */
   public function getData() {
     $items = [];
 
+    // Load configured Fact IDs from the machine names.
+    $config = $this->configFactory->get('vacancy_importer.settings.source.emply');
+
+    // Retrieve terms by machine names (stored in configuration).
+    $department_term = $this->getTermByMachineName('vacancy_department', $config->get('fact_id__work_area'));
+    $work_area_term = $this->getTermByMachineName('vacancy_work_area', $config->get('fact_id__work_time'));
+    $employment_type_term = $this->getTermByMachineName('vacancy_employment_type', $config->get('fact_id__employment_type'));
+    $work_time_term = $this->getTermByMachineName('vacancy_work_time', $config->get('fact_id__work_place'));
+
+
+    // Perform the request to fetch vacancies.
     if ($vacancies = $this->doRequest()) {
       foreach ($vacancies as $vacancy) {
         $item = new \stdClass();
-        $item->guid = $vacancy->adid->__toString();
-        $item->languageCode = $this->getLanguageCode($vacancy);
-        $item->createTime = $this->formatEmplyDate($vacancy->published->__toString());
-        $item->advertisementTitle = $this->formatPlainText($vacancy->adheader->__toString());
-        $item->jobTitle = $this->formatPlainText($vacancy->jobtitle->__toString());
-        $item->categoryWorkArea = $this->getEmplyTermFromFacts($vacancy->facts, 'work_area');
-        $item->categoryWorkTime = $this->getEmplyTermFromFacts($vacancy->facts, 'work_time');
-        $item->categoryEmployementType = $this->getEmplyTermFromFacts($vacancy->facts, 'employement_type');
-        $item->categoryDepartment = $this->formatPlainText($vacancy->department->__toString());
-        $item->body = trim($vacancy->ad->__toString());
-        $item->summary = trim($vacancy->adshorttext->__toString());
-        $item->facts = $this->formatEmplyFacts($vacancy->facts, $vacancy->publishingid);
-        $item->advertisementUrl = $vacancy['apply_link']->__toString();
-        $item->applicationUrl = $vacancy['direct_apply_link']->__toString();
-        $item->dueDate = $this->formatEmplyDate($vacancy->deadline->__toString());
-        $item->dueDateTxt = $vacancy->deadlinetext->__toString();
-        $item->workPlace = $this->getEmplyTermFromFacts($vacancy->facts, 'work_place');
+        $item->guid = isset($vacancy['jobId']) ? (string) $vacancy['jobId'] : '';
+        $item->languageCode = $this->determineLanguageCode($vacancy);
+        $item->createTime = isset($vacancy['created']) ? $this->formatEmplyDate($vacancy['created']) : '';
+
+        // Map 'advertisements' -> 'content' to 'advertisementTitle' and 'body'.
+        if (isset($vacancy['advertisements'][0])) {
+          $advertisement = $vacancy['advertisements'][0];
+          $item->advertisementTitle = isset($advertisement['title']['localization'][0]['value'])
+            ? $this->formatPlainText($advertisement['title']['localization'][0]['value'])
+            : '';
+          $item->body = isset($advertisement['content']['localization'][0]['value'])
+            ? trim($advertisement['content']['localization'][0]['value'])
+            : '';
+        }
+
+        // Map 'title' to 'jobTitle'.
+        if (isset($vacancy['title']['localization'][0]['value'])) {
+          $item->jobTitle = $this->formatPlainText($vacancy['title']['localization'][0]['value']);
+        }
+
+        // Map 'data' to categories based on machine names.
+        if (isset($vacancy['data']) && is_array($vacancy['data'])) {
+          foreach ($vacancy['data'] as $datum) {
+            $job_details_id = $datum['jobDetailsId'] ?? '';
+
+            // Check and assign categories based on jobDetailsId and term machine names.
+            if ($job_details_id === $department_term) {
+              $item->categoryDepartment = $this->getTermFromLocalization($datum['value']);
+            }
+            elseif ($job_details_id === $work_area_term) {
+              $item->categoryWorkArea = $this->getTermFromLocalization($datum['value']);
+            }
+            elseif ($job_details_id === $employment_type_term) {
+              $item->categoryEmploymentType = $this->getTermFromLocalization($datum['value']);
+            }
+            elseif ($job_details_id === $work_time_term) {
+              $item->categoryWorkTime = $this->getTermFromLocalization($datum['value']);
+            }
+          }
+        }
+
+        // Map 'applyUrl' and 'adUrl' to
+        // 'advertisementUrl' and 'applicationUrl'.
+        $item->advertisementUrl = $vacancy['applyUrl']['localization'][0]['value'] ?? '';
+        $item->applicationUrl = $vacancy['adUrl']['localization'][0]['value'] ?? '';
+
+        // Map 'deadline' and 'deadlineText'.
+        $item->dueDate = isset($vacancy['deadline']) ? $this->formatEmplyDate($vacancy['deadline']) : '';
+        $item->dueDateTxt = $vacancy['deadlineText']['localization'][0]['value'] ?? '';
+
+        // Map 'location'.
+        if (isset($vacancy['location'])) {
+          $item->workPlace = $this->formatPlainText($vacancy['location']['address']);
+        }
+
+        // Map 'facts' (if applicable).
+        $item->facts = isset($vacancy['data']) ? $this->formatEmplyFacts($vacancy['data'], $item->guid) : '';
+
         $items[] = $item;
       }
     }
@@ -200,40 +260,85 @@ class Emply extends VacancySourceBase {
   }
 
   /**
-   * Do the request to Emply API.
+   * Helper function to get a term's jobDetailsId by its machine name.
+   */
+  private function getTermByMachineName($vocabulary, $name) {
+    $query = \Drupal::entityQuery('taxonomy_term')
+      ->condition('vid', $vocabulary)
+      ->condition('name', $name);
+    $tid = $query->accessCheck(FALSE)->execute();
+
+    return !empty($tid) ? reset($tid) : NULL;
+  }
+
+  /**
+   * Helper function to check if a string is valid JSON.
    *
-   * @param $config
-   *   Array with service url, path and query parameters.
+   * @param string $string
+   *   The string to check.
+   *
+   * @return bool
+   *   TRUE if the string is valid JSON, FALSE otherwise.
+   */
+  private function isJson(string $string) {
+    json_decode($string);
+    return (json_last_error() === JSON_ERROR_NONE);
+  }
+
+  /**
+   * Performs an HTTP request to the Emply API.
+   *
+   * @param array $config
+   *   An optional configuration array with service URL, media ID, and API key.
    *
    * @return mixed
-   *   SimpleXML object with the result and FALSE if it the request fails.
+   *   An array with the result if successful, or FALSE if the request fails.
    *
+   * @throws \GuzzleHttp\Exception\GuzzleException
+   *   If the request fails.
    */
-  private function doRequest($config = []) {
+  private function doRequest(array $config = []) {
+    // If configuration is not provided, use the default API configuration.
     $config = !empty($config) ? $config : $this->getEmplyApiConfig();
 
-    if (!empty($config)) {
-      $client = new Client(['base_uri' => $config['url']]);
-      try {
-        $res = $client->get($config['path'], ['debug' => FALSE, 'query' => $config['query']]);
-        $xml = preg_replace('/&#x([a-f0-9]+);/mi', '', $res->getBody()->__toString());
-        $data = new SimpleXMLElement($xml);
+    if (empty($config['url']) || empty($config['media_id']) || empty($config['api_key'])) {
+      \Drupal::logger('emply')->error('Missing configuration for API request.');
 
-        if (isset($data->vacancy)) {
-          return $data->vacancy;
-        }
-        else {
-          return FALSE;
-        }
+      return FALSE;
+    }
 
+    // Initialize Guzzle HTTP client.
+    $client = new Client(['base_uri' => $config['url']]);
+    try {
+
+      // Make the GET request.
+      $response = $client->get('/v1/norden/postings/' . $config['media_id'], [
+        'query' => ['apiKey' => $config['api_key']],
+        'headers' => $config['headers'],
+      ]);
+
+      // Retrieve the response body and decode it.
+      $responseBody = $response->getBody()->getContents();
+
+      // Check if the response is JSON formatted.
+      if ($this->isJson($responseBody)) {
+        return json_decode($responseBody, TRUE);
       }
-      catch (RequestException $e) {
-        \Drupal::logger('emply')->error($e->getMessage());
+      else {
+        \Drupal::logger('emply')->error('API response is not valid JSON: ' . $responseBody);
+
         return FALSE;
       }
     }
+    catch (RequestException $e) {
+      \Drupal::logger('emply')->error('API request exception: ' . $e->getMessage());
+      if ($e->hasResponse()) {
+        $errorBody = $e->getResponse()->getBody()->getContents();
+        \Drupal::logger('emply')->error('Error response from Emply API: ' . $errorBody);
+      }
 
-    return FALSE;
+      return FALSE;
+    }
   }
 
   /**
@@ -245,10 +350,24 @@ class Emply extends VacancySourceBase {
    * @return bool
    *   Returns TRUE of API works and FALSE if it fails.
    *
+   * @throws \GuzzleHttp\Exception\GuzzleException
+   *   If the request fails.
    */
-  public function checkApi(array $config) {
-    $check = $this->doRequest($config);
-    return is_object($check) ? TRUE : FALSE;
+  public function checkApi(array $config = []) {
+    // Use the default API configuration if none is provided.
+    $config = !empty($config) ? $config : $this->getEmplyApiConfig();
+
+    // Perform a test request using the provided configuration.
+    $response = $this->doRequest($config);
+
+    // Check if the response is an array or object based on
+    // Emply API response format.
+    if (is_array($response) || is_object($response)) {
+      return TRUE;
+    }
+
+    \Drupal::logger('emply')->error('Emply API check failed. Response format was unexpected or inaccessible.');
+    return FALSE;
   }
 
   /**
@@ -259,10 +378,11 @@ class Emply extends VacancySourceBase {
    * @param string $media_id
    *   The Emply media id used in API request.
    * @param string $api_key
-   *   he Emply API key used in API request.
+   *   The Emply API key used in API request.
    *
-   * @return array
-   *   The Emply url, path and query parameters.
+   * @return array|bool
+   *   The configuration array containing the API URL, media ID, API key,
+   *   and headers, or FALSE if configuration is incomplete.
    */
   private function getEmplyApiConfig($domain = '', $media_id = '', $api_key = '') {
     $config = $this->configFactory->getEditable('vacancy_importer.settings.source.emply');
@@ -272,15 +392,15 @@ class Emply extends VacancySourceBase {
 
     if (!empty($domain) && !empty($media_id) && !empty($api_key)) {
       return [
-        'url' => $domain,
-        'path' => '/api.asmx/GetVacancies',
-        'query' => [
-          'apiKey' => $api_key,
-          'mediaid' => $media_id
-        ]
+        'url' => rtrim($domain, '/'),
+        'media_id' => $media_id,
+        'api_key' => $api_key,
+        'headers' => [
+          'Accept' => 'application/json',
+        ],
       ];
     }
-
+    \Drupal::logger('emply')->error('Incomplete Emply API configuration.');
     return FALSE;
   }
 
@@ -288,47 +408,20 @@ class Emply extends VacancySourceBase {
    * Change the format of a date from Emply to the standard format.
    *
    * @param string $date
-   *   Date string from Emply.
-   *
-   * @return string $date
-   *   The standard formatted date.
-   */
-  private function formatEmplyDate($date) {
-    preg_match('/(\d{2})-(\d{2})-(\d{4}), (\d{2}):(\d{2})/', $date, $matches);
-    return "{$matches[3]}-{$matches[2]}-{$matches[1]} {$matches[4]}:{$matches[5]}:00";
-  }
-
-  /**
-   * Format the facts array to a string.
-   *
-   * @param array $facts
-   *   Array with facts.
-   *
-   * @param integer $job_id
-   *   The job id from Emply.
+   *   ISO 8601 date string from Emply.
    *
    * @return string
    *   A formatted string with facts.
    */
-  private function formatEmplyFacts($facts, $job_id) {
-    $config = $this->configFactory->getEditable('vacancy_importer.settings.source.emply');
-    $formatted = [];
-
-    foreach ($facts->fact as $fact) {
-      $visibility = ($fact['visible']->__toString() == 'True') ? TRUE : FALSE;
-
-      if ($visibility) {
-        $formatted[] = "<h3>{$fact['title']->__toString()}</h3><p>{$fact->__toString()}</p>";
-      }
+  private function formatEmplyDate($date) {
+    try {
+      $dateTime = new \DateTime($date);
+      return $dateTime->format('Y-m-d H:i:s');
     }
-
-    // Add job_id to the facts box
-    if ($config->get('insert_jobid_in_facts')) {
-      $job_id_label = $this->t('Job ID');
-      $formatted[] = "<h3>{$job_id_label}</h3><p>{$job_id}</p>";
+    catch (\Exception $e) {
+      \Drupal::logger('emply')->error('Date formatting error: @message', ['@message' => $e->getMessage()]);
+      return '';
     }
-
-    return implode('', $formatted);
   }
 
   /**
@@ -336,35 +429,36 @@ class Emply extends VacancySourceBase {
    * E.g. removing single and double quotes.
    *
    * @param string $text
-   *   The source text string
+   *   The source text string.
+   *
    * @return string
    *   The formatted string ready for import.
    */
   private function formatPlainText($text) {
     $text = trim($text);
-    $text = str_replace('"', '', $text);
-    $text = str_replace("'", "" , $text);
+    $text = str_replace(['"', "'"], '', $text);
+
     return $text;
   }
 
   /**
    * Extracting a specific term value from the facts section.
    *
-   * @param array $facts
-   *   Array with facts.
+   * @param array $data
+   *   Array with data entries.
    * @param string $type
    *   The term type we are extracting the value for.
    *
    * @return string
    *   The found term name.
    */
-  private function getEmplyTermFromFacts($facts, $type) {
+  private function getEmplyTermFromFacts(array $data, string $type) {
     $config = $this->configFactory->getEditable('vacancy_importer.settings.source.emply');
 
     if ($id = $config->get("fact_id__{$type}")) {
-      foreach ($facts->fact as $fact) {
-        if ($fact['id']->__toString() == $id) {
-          return $this->formatPlainText($fact->__toString());
+      foreach ($data as $datum) {
+        if (isset($datum['id']) && $datum['id'] === $id) {
+          return isset($datum['value']['localization'][0]['value']) ? $this->formatPlainText($datum['value']['localization'][0]['value']) : '';
         }
       }
     }
@@ -375,16 +469,97 @@ class Emply extends VacancySourceBase {
   /**
    * Extract language code from the vacancy and return it in ISO 639-1 format.
    *
-   * @param $vacancy
+   * @param array $vacancy
+   *   The vacancy data array.
+   *
+   * @return string
+   *   The ISO 639-1 language code or 'und' if undefined.
    */
-  private function getLanguageCode($vacancy) {
-    $attributes = $vacancy->ad->attributes();
-    if (isset($attributes['language'])) {
-      return substr($attributes['language'], 0, 2);
+  private function determineLanguageCode(array $vacancy) {
+    // Prioritize languages based on available localization entries.
+    if (isset($vacancy['title']['localization'][0]['locale'])) {
+      return substr($vacancy['title']['localization'][0]['locale'], 0, 2);
     }
-    else {
-      return 'und';
+
+    // Default to undefined if no localization found.
+    return 'und';
+  }
+
+  /**
+   * Extracts the term value from a localization array.
+   *
+   * @param array $localization
+   *   Array of localization entries.
+   *
+   * @return string
+   *   The extracted term value.
+   */
+  private function getLocalizationValue(array $localization) {
+    if (isset($localization[0]['value'])) {
+      return $this->formatPlainText($localization[0]['value']);
     }
+    return '';
+  }
+
+  /**
+   * Formats the data array into a structured HTML string.
+   *
+   * @param array $data
+   *   Array of data entries.
+   * @param string $vacancyId
+   *   The vacancy ID.
+   *
+   * @return string
+   *   A formatted HTML string containing the facts.
+   */
+  private function formatEmplyFacts(array $data, string $vacancyId) {
+    $formatted = [];
+
+    // Iterate over the data entries and format them.
+    foreach ($data as $datum) {
+      $title = isset($datum['title']['localization'][0]['value']) ? $this->getLocalizationValue([$datum['title']['localization'][0]]) : '';
+      $value = '';
+      if ($datum['valueType'] == 0 && isset($datum['value']['localization'][0]['value'])) {
+        $value = $this->getLocalizationValue([$datum['value']['localization'][0]]);
+      }
+      elseif ($datum['valueType'] == 1 && is_array($datum['value'])) {
+        $values = array_map(function ($item) {
+          return isset($item['title']['localization'][0]['value']) ? $this->getLocalizationValue([$item['title']['localization'][0]]) : '';
+        }, $datum['value']);
+        $value = implode(', ', array_filter($values));
+      }
+
+      // Add to formatted if both title and value exist.
+      if ($title && $value) {
+        $formatted[] = "<h3>" . Html::escape($title) . "</h3><p>" . Html::escape($value) . "</p>";
+      }
+    }
+
+    // Optionally add the vacancy ID if configured.
+    $config = $this->configFactory->getEditable('vacancy_importer.settings.source.emply');
+    if ($config->get('insert_jobid_in_facts')) {
+      $job_id_label = $this->t('Job ID');
+      $formatted[] = "<h3>" . Html::escape($job_id_label) . "</h3><p>" . Html::escape($vacancyId) . "</p>";
+    }
+
+    return implode('', $formatted);
+  }
+
+  /**
+   * Extracts the term value from a localization array.
+   *
+   * @param mixed $value
+   *   The value field from the JSON, which could be a string or an array.
+   *
+   * @return string
+   *   The extracted term value.
+   */
+  private function getTermFromLocalization($value) {
+    if (is_array($value)) {
+      // Handle multiple localized values if necessary.
+      return implode(', ', array_column($value, 'value'));
+    }
+    return is_string($value) ? $this->formatPlainText($value) : '';
   }
 
 }
