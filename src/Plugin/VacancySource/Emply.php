@@ -78,7 +78,30 @@ class Emply extends VacancySourceBase {
       '#description' => t('Add JobId into the facts block during import.'),
       '#default_value' => $config->get('insert_jobid_in_facts', FALSE),
     ];
-
+    $form['fact_id__work_area'] = [
+      '#type' => 'textfield',
+      '#title' => t('Fact ID - Work Area'),
+      '#description' => t('The Fact ID used to extract the Work Area category.'),
+      '#default_value' => $config->get('fact_id__work_area', ''),
+    ];
+    $form['fact_id__work_time'] = [
+      '#type' => 'textfield',
+      '#title' => t('Fact ID - Work Time'),
+      '#description' => t('The Fact ID used to extract the Work Time category.'),
+      '#default_value' => $config->get('fact_id__work_time', ''),
+    ];
+    $form['fact_id__employment_type'] = [
+      '#type' => 'textfield',
+      '#title' => t('Fact ID - Employment Type'),
+      '#description' => t('The Fact ID used to extract the Employment Type category.'),
+      '#default_value' => $config->get('fact_id__employment_type', ''),
+    ];
+    $form['fact_id__work_place'] = [
+      '#type' => 'textfield',
+      '#title' => t('Fact ID - Work Place'),
+      '#description' => t('The Fact ID used to extract the Work Place text'),
+      '#default_value' => $config->get('fact_id__work_place', ''),
+    ];
     return $form;
   }
 
@@ -136,6 +159,10 @@ class Emply extends VacancySourceBase {
         'insert_jobid_in_facts',
         $form_state->getValue(['emply', 'insert_jobid_in_facts'])
       )
+      ->set('fact_id__work_area', $form_state->getValue(['emply', 'fact_id__work_area']))
+      ->set('fact_id__work_time', $form_state->getValue(['emply', 'fact_id__work_time']))
+      ->set('fact_id__employment_type', $form_state->getValue(['emply', 'fact_id__employment_type']))
+      ->set('fact_id__work_place', $form_state->getValue(['emply', 'fact_id__work_place']))
       ->save();
   }
 
@@ -147,13 +174,21 @@ class Emply extends VacancySourceBase {
    *
    * @throws \GuzzleHttp\Exception\GuzzleException
    *   Thrown if the HTTP request to the Emply API fails.
-   * @throws \Drupal\Core\Entity\EntityStorageException
-   *   Thrown if there is an error saving the Vacancy nodes.
    * @throws \Exception
    *   Thrown if there is an error creating the Vacancy nodes.
    */
   public function getData() {
     $items = [];
+
+    // Load configured Fact IDs from the machine names.
+    $config = $this->configFactory->get('vacancy_importer.settings.source.emply');
+
+    // Retrieve terms by machine names (stored in configuration).
+    $department_term = $this->getTermByMachineName('vacancy_department', $config->get('fact_id__work_area'));
+    $work_area_term = $this->getTermByMachineName('vacancy_work_area', $config->get('fact_id__work_time'));
+    $employment_type_term = $this->getTermByMachineName('vacancy_employment_type', $config->get('fact_id__employment_type'));
+    $work_time_term = $this->getTermByMachineName('vacancy_work_time', $config->get('fact_id__work_place'));
+
 
     // Perform the request to fetch vacancies.
     if ($vacancies = $this->doRequest()) {
@@ -166,8 +201,12 @@ class Emply extends VacancySourceBase {
         // Map 'advertisements' -> 'content' to 'advertisementTitle' and 'body'.
         if (isset($vacancy['advertisements'][0])) {
           $advertisement = $vacancy['advertisements'][0];
-          $item->advertisementTitle = isset($advertisement['title']['localization'][0]['value']) ? $this->formatPlainText($advertisement['title']['localization'][0]['value']) : '';
-          $item->body = isset($advertisement['content']['localization'][0]['value']) ? trim($advertisement['content']['localization'][0]['value']) : '';
+          $item->advertisementTitle = isset($advertisement['title']['localization'][0]['value'])
+            ? $this->formatPlainText($advertisement['title']['localization'][0]['value'])
+            : '';
+          $item->body = isset($advertisement['content']['localization'][0]['value'])
+            ? trim($advertisement['content']['localization'][0]['value'])
+            : '';
         }
 
         // Map 'title' to 'jobTitle'.
@@ -175,25 +214,23 @@ class Emply extends VacancySourceBase {
           $item->jobTitle = $this->formatPlainText($vacancy['title']['localization'][0]['value']);
         }
 
-        // Map 'data' to categories and other fields.
+        // Map 'data' to categories based on machine names.
         if (isset($vacancy['data']) && is_array($vacancy['data'])) {
           foreach ($vacancy['data'] as $datum) {
-            // Extract the localized title.
-            $localized_title = $datum['title']['localization'][0]['value'] ?? '';
+            $job_details_id = $datum['jobDetailsId'] ?? '';
 
-            switch (strtolower($localized_title)) {
-              case 'organisation':
-                $item->categoryDepartment = $this->formatPlainText($this->getTermFromLocalization($datum['value']));
-                break;
-
-              case 'work area':
-                $item->categoryWorkArea = $this->getTermFromLocalization($datum['value']);
-                break;
-
-              case 'employment conditions':
-                $item->categoryEmploymentType = $this->getTermFromLocalization($datum['value']);
-                break;
-
+            // Check and assign categories based on jobDetailsId and term machine names.
+            if ($job_details_id === $department_term) {
+              $item->categoryDepartment = $this->getTermFromLocalization($datum['value']);
+            }
+            elseif ($job_details_id === $work_area_term) {
+              $item->categoryWorkArea = $this->getTermFromLocalization($datum['value']);
+            }
+            elseif ($job_details_id === $employment_type_term) {
+              $item->categoryEmploymentType = $this->getTermFromLocalization($datum['value']);
+            }
+            elseif ($job_details_id === $work_time_term) {
+              $item->categoryWorkTime = $this->getTermFromLocalization($datum['value']);
             }
           }
         }
@@ -220,6 +257,18 @@ class Emply extends VacancySourceBase {
     }
 
     return $items;
+  }
+
+  /**
+   * Helper function to get a term's jobDetailsId by its machine name.
+   */
+  private function getTermByMachineName($vocabulary, $name) {
+    $query = \Drupal::entityQuery('taxonomy_term')
+      ->condition('vid', $vocabulary)
+      ->condition('name', $name);
+    $tid = $query->accessCheck(FALSE)->execute();
+
+    return !empty($tid) ? reset($tid) : NULL;
   }
 
   /**
@@ -314,12 +363,10 @@ class Emply extends VacancySourceBase {
     // Check if the response is an array or object based on
     // Emply API response format.
     if (is_array($response) || is_object($response)) {
-
       return TRUE;
     }
 
     \Drupal::logger('emply')->error('Emply API check failed. Response format was unexpected or inaccessible.');
-
     return FALSE;
   }
 
