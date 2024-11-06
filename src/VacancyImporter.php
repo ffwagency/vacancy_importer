@@ -104,8 +104,7 @@ class VacancyImporter {
   }
 
   /**
-   * Execute the import from the configured source plugin and the node
-   * create/update.
+   * Execute the import from the source plugin and the node create/update.
    *
    * @return array
    *   Array with info about the result.
@@ -370,8 +369,7 @@ class VacancyImporter {
   }
 
   /**
-   * Delete the record holding the relation between the node and the plugin and
-   * source GUID.
+   * Delete the record holding the relation of node, plugin and source GUID.
    *
    * @param int $nid
    *   The node ID.
@@ -403,8 +401,7 @@ class VacancyImporter {
   }
 
   /**
-   * Archive all published vacancies where due date is older than specified
-   * minutes.
+   * Archive all published vacancies which are older than specified minutes.
    *
    * @throws \Drupal\Core\Entity\EntityStorageException
    *   If the node could not be saved.
