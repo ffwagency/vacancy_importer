@@ -159,10 +159,22 @@ class Emply extends VacancySourceBase {
         'insert_jobid_in_facts',
         $form_state->getValue(['emply', 'insert_jobid_in_facts'])
       )
-      ->set('fact_id__work_area', $form_state->getValue(['emply', 'fact_id__work_area']))
-      ->set('fact_id__work_time', $form_state->getValue(['emply', 'fact_id__work_time']))
-      ->set('fact_id__employment_type', $form_state->getValue(['emply', 'fact_id__employment_type']))
-      ->set('fact_id__work_place', $form_state->getValue(['emply', 'fact_id__work_place']))
+      ->set(
+        'fact_id__work_area',
+        $form_state->getValue(['emply', 'fact_id__work_area'])
+      )
+      ->set(
+        'fact_id__work_time',
+        $form_state->getValue(['emply', 'fact_id__work_time'])
+      )
+      ->set(
+        'fact_id__employment_type',
+        $form_state->getValue(['emply', 'fact_id__employment_type'])
+      )
+      ->set(
+        'fact_id__work_place',
+        $form_state->getValue(['emply', 'fact_id__work_place'])
+      )
       ->save();
   }
 
@@ -180,22 +192,12 @@ class Emply extends VacancySourceBase {
   public function getData() {
     $items = [];
 
-    // Load configured Fact IDs from the machine names.
-    $config = $this->configFactory->get('vacancy_importer.settings.source.emply');
-
-    // Retrieve terms by machine names (stored in configuration).
-    $department_term = $this->getTermByMachineName('vacancy_department', $config->get('fact_id__work_area'));
-    $work_area_term = $this->getTermByMachineName('vacancy_work_area', $config->get('fact_id__work_time'));
-    $employment_type_term = $this->getTermByMachineName('vacancy_employment_type', $config->get('fact_id__employment_type'));
-    $work_time_term = $this->getTermByMachineName('vacancy_work_time', $config->get('fact_id__work_place'));
-
-
     // Perform the request to fetch vacancies.
     if ($vacancies = $this->doRequest()) {
       foreach ($vacancies as $vacancy) {
         $item = new \stdClass();
         $item->guid = isset($vacancy['jobId']) ? (string) $vacancy['jobId'] : '';
-        $item->languageCode = $this->determineLanguageCode($vacancy);
+        $item->languageCode = $this->getLanguageCode($vacancy);
         $item->createTime = isset($vacancy['created']) ? $this->formatEmplyDate($vacancy['created']) : '';
 
         // Map 'advertisements' -> 'content' to 'advertisementTitle' and 'body'.
@@ -214,25 +216,17 @@ class Emply extends VacancySourceBase {
           $item->jobTitle = $this->formatPlainText($vacancy['title']['localization'][0]['value']);
         }
 
-        // Map 'data' to categories based on machine names.
-        if (isset($vacancy['data']) && is_array($vacancy['data'])) {
-          foreach ($vacancy['data'] as $datum) {
-            $job_details_id = $datum['jobDetailsId'] ?? '';
+        // Map 'department' to 'categoryDepartment'.
+        if (isset($vacancy['department']['title']['localization'])) {
+          $item->categoryDepartment = $this->formatPlainText($vacancy['department']['title']['localization'][0]['value']);
+        }
 
-            // Check and assign categories based on jobDetailsId and term machine names.
-            if ($job_details_id === $department_term) {
-              $item->categoryDepartment = $this->getTermFromLocalization($datum['value']);
-            }
-            elseif ($job_details_id === $work_area_term) {
-              $item->categoryWorkArea = $this->getTermFromLocalization($datum['value']);
-            }
-            elseif ($job_details_id === $employment_type_term) {
-              $item->categoryEmploymentType = $this->getTermFromLocalization($datum['value']);
-            }
-            elseif ($job_details_id === $work_time_term) {
-              $item->categoryWorkTime = $this->getTermFromLocalization($datum['value']);
-            }
-          }
+        // Map 'data' to categories based on machine names.
+        if (isset($vacancy['data'])) {
+          $item->categoryWorkArea = $this->getEmplyTermFromFacts($vacancy['data'], 'work_area', $item->languageCode);
+          $item->categoryWorkTime = $this->getEmplyTermFromFacts($vacancy['data'], 'work_time', $item->languageCode);
+          $item->categoryEmploymentType = $this->getEmplyTermFromFacts($vacancy['data'], 'employment_type', $item->languageCode);
+          $item->workPlace = $this->getEmplyTermFromFacts($vacancy['data'], 'work_place', $item->languageCode);
         }
 
         // Map 'applyUrl' and 'adUrl' to
@@ -244,11 +238,6 @@ class Emply extends VacancySourceBase {
         $item->dueDate = isset($vacancy['deadline']) ? $this->formatEmplyDate($vacancy['deadline']) : '';
         $item->dueDateTxt = $vacancy['deadlineText']['localization'][0]['value'] ?? '';
 
-        // Map 'location'.
-        if (isset($vacancy['location'])) {
-          $item->workPlace = $this->formatPlainText($vacancy['location']['address']);
-        }
-
         // Map 'facts' (if applicable).
         $item->facts = isset($vacancy['data']) ? $this->formatEmplyFacts($vacancy['data'], $item->guid) : '';
 
@@ -257,18 +246,6 @@ class Emply extends VacancySourceBase {
     }
 
     return $items;
-  }
-
-  /**
-   * Helper function to get a term's jobDetailsId by its machine name.
-   */
-  private function getTermByMachineName($vocabulary, $name) {
-    $query = \Drupal::entityQuery('taxonomy_term')
-      ->condition('vid', $vocabulary)
-      ->condition('name', $name);
-    $tid = $query->accessCheck(FALSE)->execute();
-
-    return !empty($tid) ? reset($tid) : NULL;
   }
 
   /**
@@ -426,7 +403,6 @@ class Emply extends VacancySourceBase {
 
   /**
    * Format a plain text string in the format we want in Drupal.
-   * E.g. removing single and double quotes.
    *
    * @param string $text
    *   The source text string.
@@ -448,41 +424,40 @@ class Emply extends VacancySourceBase {
    *   Array with data entries.
    * @param string $type
    *   The term type we are extracting the value for.
+   * @param string $languageCode
+   *   The language code for the term.
    *
    * @return string
    *   The found term name.
    */
-  private function getEmplyTermFromFacts(array $data, string $type) {
-    $config = $this->configFactory->getEditable('vacancy_importer.settings.source.emply');
+  private function getEmplyTermFromFacts(array $data, string $type, string $languageCode) {
+    $config = $this->configFactory->get('vacancy_importer.settings.source.emply');
+    $jobDetailsId = $config->get("fact_id__{$type}");
+    $jobDetailsId = trim($jobDetailsId);
 
-    if ($id = $config->get("fact_id__{$type}")) {
-      foreach ($data as $datum) {
-        if (isset($datum['id']) && $datum['id'] === $id) {
-          return isset($datum['value']['localization'][0]['value']) ? $this->formatPlainText($datum['value']['localization'][0]['value']) : '';
+    foreach ($data as $datum) {
+      if (isset($datum['jobDetailsId'])) {
+        $datumJobDetailsId = trim($datum['jobDetailsId']);
+
+        if (strcasecmp($datumJobDetailsId, $jobDetailsId) === 0) {
+          // Extract value based on data structure.
+          if (isset($datum['value']['localization'])) {
+            // Case where value has localization.
+            $value = $this->getLocalizationValueByLocale($datum['value']['localization'], $languageCode);
+            return $this->formatPlainText($value);
+          }
+          elseif (is_array($datum['value']) && isset($datum['value'][0]['title']['localization'])) {
+            // Case where value is an array of items with title localization.
+            $values = array_map(function ($item) use ($languageCode) {
+              return $this->getLocalizationValueByLocale($item['title']['localization'], $languageCode);
+            }, $datum['value']);
+            return implode(', ', array_filter($values));
+          }
         }
       }
     }
 
     return '';
-  }
-
-  /**
-   * Extract language code from the vacancy and return it in ISO 639-1 format.
-   *
-   * @param array $vacancy
-   *   The vacancy data array.
-   *
-   * @return string
-   *   The ISO 639-1 language code or 'und' if undefined.
-   */
-  private function determineLanguageCode(array $vacancy) {
-    // Prioritize languages based on available localization entries.
-    if (isset($vacancy['title']['localization'][0]['locale'])) {
-      return substr($vacancy['title']['localization'][0]['locale'], 0, 2);
-    }
-
-    // Default to undefined if no localization found.
-    return 'und';
   }
 
   /**
@@ -546,20 +521,57 @@ class Emply extends VacancySourceBase {
   }
 
   /**
-   * Extracts the term value from a localization array.
+   * Retrieves the localized value for a given locale from localizations.
    *
-   * @param mixed $value
-   *   The value field from the JSON, which could be a string or an array.
+   * @param array $localizations
+   *   An array of localization entries.
+   * @param string $locale
+   *   The locale code to search for (e.g., 'en-GB').
    *
    * @return string
-   *   The extracted term value.
+   *   The localized value if found; otherwise, an empty string.
    */
-  private function getTermFromLocalization($value) {
-    if (is_array($value)) {
-      // Handle multiple localized values if necessary.
-      return implode(', ', array_column($value, 'value'));
+  private function getLocalizationValueByLocale(array $localizations, string $locale) {
+    // First, attempt to find the value for the specified locale.
+    foreach ($localizations as $localization) {
+      if (isset($localization['locale']) && $localization['locale'] === $locale) {
+        return $this->formatPlainText($localization['value']);
+      }
     }
-    return is_string($value) ? $this->formatPlainText($value) : '';
+
+    // If not found, attempt to find a value for a fallback locale.
+    foreach ($localizations as $localization) {
+      if (isset($localization['locale']) && $localization['locale'] === 'en-GB') {
+        return $this->formatPlainText($localization['value']);
+      }
+    }
+
+    // If still not found, return the first available localization value.
+    if (!empty($localizations[0]['value'])) {
+      return $this->formatPlainText($localizations[0]['value']);
+    }
+
+    // Return an empty string if no value is found.
+    return '';
+  }
+
+  /**
+   * Extract language code from the vacancy and return it in ISO 639-1 format.
+   *
+   * @param array $vacancy
+   *   The vacancy data array.
+   *
+   * @return string
+   *   The ISO 639-1 language code or 'und' if undefined.
+   */
+  private function getLanguageCode(array $vacancy) {
+    if (isset($vacancy['ad']['attributes'])) {
+      $attributes = $vacancy['ad']['attributes'];
+      if (isset($attributes['language'])) {
+        return substr($attributes['language'], 0, 2);
+      }
+    }
+    return 'und';
   }
 
 }
